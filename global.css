@@ -1,0 +1,22 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+    --color-background: #fff9e3;
+}
+
+.bg-button {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #FFFFFF;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    height: 40px;
+    margin: 0.25rem;
+}
+
+.tabs-glyph {
+    @apply size-6;
+}

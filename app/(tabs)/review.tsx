@@ -5,7 +5,7 @@ import {Link} from "expo-router";
 const SignIn = () => {
     return (
         <View className="flex-1 items-center justify-center bg-background">
-            <Link href="/(auth)/sign-up">Create Account</Link>
+            <Link href="/(auth)/sign-up">Review</Link>
         </View>
     );
 }
