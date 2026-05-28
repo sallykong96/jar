@@ -1,0 +1,19 @@
+import "@/global.css"
+import {ImageBackground, Text, View} from "react-native"
+import { Link } from "expo-router"
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+export default function App() {
+    return (
+        <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full"  resizeMode="cover">
+    <View className="flex-1 items-center justify-center">
+        <Text className="font-artistic absolute left-10 top-30 text-white text-5xl">Meet the one in the</Text>
+        <Text className="font-artistic absolute left-50 top-35 text-white text-[120px]">Jar</Text>
+
+            <Link href="/(auth)/sign-in" className="bg-button">Login</Link>
+        <View className="h-px w-55 bg-white opacity-50" />
+            <Link href="/(auth)/sign-up" className="bg-button">Sign Up</Link>
+    </View>
+        </ImageBackground>
+    );
+}
