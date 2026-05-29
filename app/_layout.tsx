@@ -65,7 +65,9 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-    const [fontsLoaded] = useFonts({});
+    const [fontsLoaded] = useFonts({
+        'tangerine-regular': require('../assets/fonts/tangerine-regular.ttf'),
+    });
 
     useEffect(() => {
         if (fontsLoaded) {

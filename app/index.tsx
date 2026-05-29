@@ -1,6 +1,9 @@
 import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-expo';
 import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, Alert, ScrollView } from 'react-native';
 import { useState } from 'react';
+import "@/global.css"
+import { ImageBackground } from 'react-native';
+import { createUser } from "@/lib/supabase";
 
 export default function Index() {
     const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
@@ -10,6 +13,7 @@ export default function Index() {
     const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [pendingVerification, setPendingVerification] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
@@ -46,9 +50,20 @@ export default function Index() {
         setLoading(true);
         try {
             const completeSignUp = await signUp.attemptEmailAddressVerification({ code: verificationCode });
+
             if (completeSignUp.status === 'complete') {
+                // console.log("completeSignUp:", completeSignUp )
+                // console.log("signUp:", signUp )
+
+                const userData = {
+                    id: completeSignUp.id,
+                    email: completeSignUp.emailAddress,
+                    name: name,
+                };
                 await setSignUpActive({ session: completeSignUp.createdSessionId });
                 Alert.alert('Success', 'Account created successfully!');
+                const err = await createUser(userData);
+                console.log("err:", err )
                 setPendingVerification(false);
             } else {
                 Alert.alert('Error', 'Verification failed. Please try again.');
@@ -80,7 +95,6 @@ export default function Index() {
             const result = await signIn.create({ identifier: email, password: password });
             if (result.status === 'complete') {
                 await setSignInActive({ session: result.createdSessionId });
-                Alert.alert('Success', 'Signed in successfully!');
                 setEmail('');
                 setPassword('');
             }
@@ -111,73 +125,88 @@ export default function Index() {
 
     if (pendingVerification) {
         return (
-            <ScrollView contentContainerStyle={styles.container}>
-                <View style={styles.card}>
-                    <Text style={styles.title}>Verify Your Email</Text>
-                    <Text style={styles.subtitle}>Enter the code sent to:</Text>
+            <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full"  resizeMode="cover">
+            <ScrollView contentContainerClassName="justify-center items-center px-5 mt-20">
+                    <Text className="text-8xl text-white font-artistic mb-10">Verify Your Email</Text>
+                    <Text className="text-xl text-white opacity-80">Enter the code sent to:</Text>
                     <Text style={styles.emailText}>{verificationEmail}</Text>
                     <TextInput
-                        style={styles.input}
+                        className="auth-input"
                         placeholder="6-digit code"
                         value={verificationCode}
                         onChangeText={setVerificationCode}
                         keyboardType="number-pad"
                         maxLength={6}
                     />
-                    <TouchableOpacity style={styles.primaryButton} onPress={onVerify} disabled={loading}>
-                        <Text style={styles.primaryButtonText}>{loading ? 'Verifying...' : 'Verify Account'}</Text>
+                    <TouchableOpacity className="auth-button" onPress={onVerify} disabled={loading}>
+                        <Text className="auth-button-text">{loading ? 'Verifying...' : 'Verify Account'}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkButton} onPress={onResendCode} disabled={loading}>
-                        <Text style={styles.linkButtonText}>Resend Code</Text>
+                    <TouchableOpacity className="auth-button" onPress={onResendCode} disabled={loading}>
+                        <Text className="auth-button-text">Resend Code</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkButton} onPress={() => { setPendingVerification(false); setVerificationCode(''); }}>
-                        <Text style={styles.linkButtonText}>← Back</Text>
+                    <TouchableOpacity onPress={() => { setPendingVerification(false); setVerificationCode(''); }}>
+                        <Text className="text-white opacity-80">← Back</Text>
                     </TouchableOpacity>
-                </View>
             </ScrollView>
+            </ImageBackground>
         );
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.title}>{mode === 'signIn' ? 'Welcome Back' : 'Create Account'}</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
-                <TouchableOpacity style={styles.primaryButton} onPress={mode === 'signIn' ? onSignIn : onSignUp} disabled={loading}>
-                    <Text style={styles.primaryButtonText}>{loading ? 'Please wait...' : mode === 'signIn' ? 'Sign In' : 'Sign Up'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.linkButton} onPress={() => { setMode(mode === 'signIn' ? 'signUp' : 'signIn'); setEmail(''); setPassword(''); }}>
-                    <Text style={styles.linkButtonText}>{mode === 'signIn' ? 'Create an account' : 'Already have an account? Sign In'}</Text>
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
+        <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
+            <ScrollView contentContainerClassName="justify-center px-5">
+                <Text className="text-4xl text-white font-artistic mt-40 ml-20 text-left">
+                    {mode === 'signIn' ? 'Grow the love in a' : ''}
+                </Text>
+                <View className="items-center">
+                    <Text className="text-8xl text-white font-artistic mb-10">
+                        {mode === 'signIn' ? 'Jar' : 'Create Account'}
+                    </Text>
+
+                    <TextInput
+                        className="auth-input"
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                    />
+
+                    <TextInput
+                        className="auth-input"
+                        placeholder="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+
+                    {mode === 'signUp'&& (
+                        <TextInput
+                            className="auth-input"
+                            placeholder="Username"
+                            value={name}
+                            onChangeText={setName}
+                        />
+                    )}
+
+                    <TouchableOpacity className="auth-button" onPress={mode === 'signIn' ? onSignIn : onSignUp} disabled={loading}>
+                        <Text className="text-white opacity-80">
+                            {loading ? 'Please wait...' : mode === 'signIn' ? 'Sign In' : 'Sign Up'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => { setMode(mode === 'signIn' ? 'signUp' : 'signIn'); setEmail(''); setPassword(''); setName('')}}>
+                        <Text className="text-white opacity-80">
+                            {mode === 'signIn' ? 'Create an account' : 'Already have an account? Sign In'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-    container: { flexGrow: 1, justifyContent: 'center', backgroundColor: '#f5f5f5', padding: 20 },
-    card: { backgroundColor: '#fff', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 },
-    title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
-    subtitle: { fontSize: 14, color: '#666', marginBottom: 8, textAlign: 'center' },
     emailText: { fontSize: 16, fontWeight: '600', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
-    input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fafafa' },
-    primaryButton: { backgroundColor: '#007AFF', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
-    primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-    linkButton: { padding: 16, alignItems: 'center', marginTop: 8 },
-    linkButtonText: { color: '#007AFF', fontSize: 14 },
 });
