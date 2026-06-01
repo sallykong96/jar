@@ -6,7 +6,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 
 
-export default function Home() {
+export default function Connect() {
     const [loading, setLoading] = useState(false);
     const [roomName, setRoomName] = useState('');
     const [password, setPassword] = useState('');
@@ -16,10 +16,12 @@ export default function Home() {
     const onCreate = async () => {
         setLoading(true);
         try {
-            const err = await createRoom(user? user.id:'', roomName, password );
-            console.log("onCreate err:", err )
-            Alert.alert('Success', 'Room created successfully!');
-            router.replace('/');
+            const newRoom = await createRoom(user? user.id:'', roomName, password );
+            console.log("createRoom:", newRoom )
+            router.push({
+                pathname: `/room/[roomName]`,
+                params: { roomName: roomName }
+            });
         } catch (err: any) {
             console.log("onCreate catch err:", err )
         } finally {
@@ -30,19 +32,25 @@ export default function Home() {
     const onEnter = async () => {
         setLoading(true);
         try {
-            const err = await checkRoom(user? user.id:'', roomName, password );
-            console.log("onEnter err:", err )
-            Alert.alert('Success', 'Room entered successfully!');
-            router.replace('/');
+            const existRoom = await checkRoom(user? user.id:'', roomName, password );
+            console.log("existRoom:", existRoom )
+            if (existRoom) {
+                console.log("existRoom:", existRoom.room_name )
+                router.replace(`/room/${existRoom.room_name || roomName}`);
+            } else {
+                router.replace('/');
+            }
         } catch (err: any) {
-            console.log("onEnter catch err:", err )
+            if (roomName==='' || password===''){
+                Alert.alert("Please input room credentials");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full"  resizeMode="cover">
+        <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
             <Text className="text-8xl text-white font-artistic text-center mb-10 mt-40">
                 {mode === 'enter' ? 'Enter a Room': 'Create a Room' }
             </Text>
@@ -62,7 +70,7 @@ export default function Home() {
                 secureTextEntry
             />
                 <TouchableOpacity className="auth-button" onPress={mode === 'enter' ? onEnter : onCreate} disabled={loading}>
-                    <Text className="text-white opacity-80">
+                    <Text className="text-white opacity-80  text-[16px]">
                         {loading ? 'Please wait...' : mode === 'enter' ? 'Enter' : 'Create'}
                     </Text>
                 </TouchableOpacity>

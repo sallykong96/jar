@@ -28,22 +28,23 @@ if (!publishableKey) {
     throw new Error('Missing Clerk Publishable Key');
 }
 
-// This component handles routing based on auth state
+
 function RootLayoutNav() {
     const { isSignedIn, isLoaded } = useAuth();
     const segments = useSegments();
 
     useEffect(() => {
         if (!isLoaded) return;
+        const inHomePage = !segments[0]; // inHomePage = logged in but not entered room
 
-        const inHomeGroup = segments[0] === '(home)';
+        console.log('segments:',segments);
+        console.log('isLoaded:',isLoaded);
+        console.log('isSignedIn:',isSignedIn);
+        console.log('inHomeGroup:',inHomePage);
 
-        // Only redirect if needed - prevent loops by checking current location
-        if (isSignedIn && !inHomeGroup) {
-            // Signed in but not in home group → go home
-            router.replace('/(home)');
-        } else if (!isSignedIn && inHomeGroup) {
-            // Not signed in but in home group → go to auth
+        if (isSignedIn && inHomePage) {
+            router.replace('/connect');
+        } else if (!isSignedIn && inHomePage) {
             router.replace('/');
         }
     }, [isSignedIn, isLoaded, segments]);
@@ -59,7 +60,8 @@ function RootLayoutNav() {
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
-            <Stack.Screen name="(home)" />
+            <Stack.Screen name="connect" />
+            <Stack.Screen name="room/[name]" />
         </Stack>
     );
 }

@@ -57,7 +57,6 @@ export async function createUser(user: any) {
     }
 }
 
-
 export async function createRoom(user: any, roomName: string, password: string) {
     console.log('Creating room with data:', {
         user: user,
@@ -107,7 +106,7 @@ export async function checkRoom(user: any, roomName: string, password: string) {
     try {
         const { data, error } = await supabase
             .from('connections')
-            .select('creator, joiner')
+            .select('creator, joiner, room_name')
             .eq('room_name', roomName)
             .eq('password', password)
             .maybeSingle();
@@ -128,9 +127,86 @@ export async function checkRoom(user: any, roomName: string, password: string) {
         } else {
             console.log('User does not have access to this room');
             Alert.alert("Please input correct room credentials");
+            throw error;
         }
     } catch (err) {
         console.error('Caught error in checkRoom:', err);
+        throw err;
+    }
+}
+
+export async function checkDates(roomName: string) {
+    console.log('Checking dates for:', roomName);
+
+    try {
+        const { data, error } = await supabase
+            .from('dates')
+            .select('met_date, start_dating')
+            .eq('room_name', roomName)
+            .single();
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error
+        }
+        return data;
+    } catch (err) {
+        console.error('Caught error in checkDates:', err);
+        throw err;
+    }
+}
+
+export async function checkUser(roomName: string) {
+    console.log('Checking user info:', roomName);
+
+    try {
+        const { data, error } = await supabase
+            .from('connections')
+            .select('creator, joiner')
+            .eq('room_name', roomName)
+            .single();
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        // Declare variables outside the if blocks
+        let creator = null;
+        let joiner = null;
+
+        if (data && data.creator) {
+            const { data: creatorData, error: creatorError } = await supabase
+                .from('users')
+                .select('name')
+                .eq('clerk_id', data.creator)
+                .maybeSingle();
+
+            if (creatorError) {
+                console.error('Creator fetch error:', creatorError);
+            } else {
+                creator = creatorData;
+            }
+        }
+
+        if (data && data.joiner) {
+            const { data: joinerData, error: joinerError } = await supabase
+                .from('users')
+                .select('name')
+                .eq('clerk_id', data.joiner)
+                .maybeSingle();
+
+            if (joinerError) {
+                console.error('Joiner fetch error:', joinerError);
+            } else {
+                joiner = joinerData;
+            }
+        }
+
+        return { creator, joiner };
+
+    } catch (err) {
+        console.error('Caught error in checkUser:', err);
         throw err;
     }
 }
