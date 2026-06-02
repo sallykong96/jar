@@ -30,10 +30,7 @@ export default function Connect() {
         try {
             const newRoom = await createRoom(user? user.id:'', roomName, password );
             console.log("createRoom:", newRoom )
-            router.push({
-                pathname: `/room/[roomName]`,
-                params: { roomName: roomName }
-            });
+            router.push(`/room/${roomName}`);
         } catch (err: any) {
             console.log("onCreate catch err:", err )
         } finally {

@@ -3,7 +3,7 @@ import { View, Text, Image, ImageBackground, TouchableOpacity, Alert, ActivityIn
 import { useLocalSearchParams, router } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import {checkDates, supabase} from '@/lib/supabase';
-import Icon from '../components/Icon';
+import Icon from '../../components/Icon';
 
 interface Dates {
     met_date: string;
@@ -117,6 +117,7 @@ export default function RoomScreen() {
                 <TouchableOpacity className="rec-button mx-5 absolute bottom-20 left-10" onPress={handleLeaveRoom}>
                     <Text className="text-white text-center text-[16px]">Leave Room</Text>
                 </TouchableOpacity>
+
             </View>
         </ImageBackground>
     );

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import { View, ActivityIndicator } from 'react-native';
+import AddPartner from "@/app/room/[roomName]/add-partner";
 
 const tokenCache = {
     async getToken(key: string) {
@@ -61,7 +62,8 @@ function RootLayoutNav() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="connect" />
-            <Stack.Screen name="room/[name]" />
+            <Stack.Screen name="[roomName]" />
+            <Stack.Screen name="[roomName]/add-partner" />
         </Stack>
     );
 }

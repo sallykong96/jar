@@ -1,9 +1,9 @@
-import {Stack, useLocalSearchParams} from 'expo-router';
+import { router, Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {checkUser} from "@/lib/supabase";
-import {useState, useEffect} from "react";
+import {useState, useEffect, useCallback} from "react";
 
 function RoomBanner() {
     const insets = useSafeAreaInsets();
@@ -11,27 +11,33 @@ function RoomBanner() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
     const [ creator, setCreator ] = useState('');
     const [ joiner, setJoiner ] = useState('');
-    useEffect(() => {
+
+    const fetchData = useCallback(async () => {
         if (roomName) {
-            fetchData();
+            const { creator, joiner } = await checkUser(roomName);
+            console.log('creator', creator);
+            console.log('joiner', joiner);
+            setCreator(creator?.name || '');
+            setJoiner(joiner?.name || '');
         }
     }, [roomName]);
 
-    const fetchData = async () => {
-        const { creator, joiner } = await checkUser(roomName);
-        setCreator(creator?.name || '');
-        setJoiner(joiner?.name || '')
-    }
+    // Initial fetch when component mounts
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // Refetch data when the screen comes into focus (e.g., after returning from add-partner)
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
 
     return (
         <View style={[styles.banner, { top: bannerTopPosition }]} className="w-full">
             <TouchableOpacity
-                onPress={(!creator || !joiner) ? () => {
-                    console.log('Add partner pressed');
-                    // Navigate to add partner screen
-                    // router.push('/add-partner');
-                } : undefined}
-                activeOpacity={(!creator || !joiner) ? 0.7 : 1}
+                onPress={(!creator || !joiner) ? () => {router.push(`/room/${roomName}/add-partner`)} : undefined}
             >
                 <Text style={styles.bannerText}>
                     {!creator || !joiner ? 'Add a partner to the room!' : `${creator} ♡ ${joiner}`}
@@ -43,13 +49,11 @@ function RoomBanner() {
 
 export default function RoomLayout() {
     const { isSignedIn } = useAuth();
-
-    // Only show banner if user is signed in (which they will be in rooms)
     return (
         <View style={{ flex: 1 }}>
             {isSignedIn && <RoomBanner />}
             <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="[name]" />
+                {/*<Stack.Screen name="/room/[roomName]" />*/}
             </Stack>
         </View>
     );

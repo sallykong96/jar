@@ -127,9 +127,9 @@ export default function Index() {
         return (
             <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full"  resizeMode="cover">
             <ScrollView contentContainerClassName="justify-center items-center px-5 mt-20">
-                    <Text className="text-8xl text-white font-artistic mb-10">Verify Your Email</Text>
+                    <Text className="text-[60px] text-white font-artistic mb-10 mt-30">Verify Your Email</Text>
                     <Text className="text-xl text-white opacity-80">Enter the code sent to:</Text>
-                    <Text style={styles.emailText}>{verificationEmail}</Text>
+                    <Text className="text-red-500 mb-5">{verificationEmail}</Text>
                     <TextInput
                         className="auth-input"
                         placeholder="6-digit code"
@@ -155,11 +155,11 @@ export default function Index() {
     return (
         <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
             <ScrollView contentContainerClassName="justify-center px-5">
-                <Text className="text-5xl text-white font-artistic mt-50 ml-20 text-left">
+                <Text className={`text-5xl text-white font-artistic ml-20 text-left ${mode === 'signIn' ? 'mt-50' : 'mt-40'}`}>
                     {mode === 'signIn' ? 'Grow the love in a' : ''}
                 </Text>
                 <View className="items-center">
-                    <Text className="text-[130px] text-white font-artistic mb-10">
+                    <Text className={`text-white font-artistic mb-10 ${mode === 'signIn' ? 'text-[130px]' : 'text-[60px]'}`}>
                         {mode === 'signIn' ? 'Jar' : 'Create Account'}
                     </Text>
 
@@ -208,5 +208,4 @@ export default function Index() {
 
 const styles = StyleSheet.create({
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-    emailText: { fontSize: 16, fontWeight: '600', color: '#007AFF', textAlign: 'center', marginBottom: 20 },
 });

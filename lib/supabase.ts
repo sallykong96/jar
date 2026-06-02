@@ -164,13 +164,13 @@ export async function checkUser(roomName: string) {
             .from('connections')
             .select('creator, joiner')
             .eq('room_name', roomName)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error('Supabase error:', error);
             throw error;
         }
-
+        console.log('data.creator:', data?.creator);
         // Declare variables outside the if blocks
         let creator = null;
         let joiner = null;
@@ -207,6 +207,55 @@ export async function checkUser(roomName: string) {
 
     } catch (err) {
         console.error('Caught error in checkUser:', err);
+        throw err;
+    }
+}
+
+export async function checkExistingUser(email: string) {
+    console.log('checkExistingUser:', email);
+
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('name, clerk_id')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        if (data) {
+            return { data };
+        }
+
+    } catch (err) {
+        console.error('Caught error in checkExistingUser:', err);
+        throw err;
+    }
+}
+
+export async function addPartner(userId: string, roomName: string) {
+    console.log('addPartner:', userId, roomName);
+
+    try {
+        const { data, error } = await supabase
+            .from('connections')
+            .update({ joiner: userId })
+            .eq('room_name', roomName)
+            .select();
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        console.log('Partner added successfully:', data);
+        return data;
+
+    } catch (err) {
+        console.error('Caught error in addPartner:', err);
         throw err;
     }
 }
