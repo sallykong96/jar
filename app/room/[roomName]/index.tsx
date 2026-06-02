@@ -89,14 +89,14 @@ export default function RoomScreen() {
             <View className="flex-1 mt-40">
                 {/* Icons Section */}
                 <View className="flex-row justify-center items-center mb-8">
-                    <Icon iconSource={require('@/assets/icons/travel.png')} label="Travel Bucket"/>
-                    <Icon iconSource={require('@/assets/icons/review.png')} label="Partner Says"/>
-                    <Icon iconSource={require('@/assets/icons/dates.png')} label="The Dates"/>
+                    <Icon iconSource={require('@/assets/icons/travel.png')} label="travel-bucket"/>
+                    <Icon iconSource={require('@/assets/icons/review.png')} label="partner-says"/>
+                    <Icon iconSource={require('@/assets/icons/dates.png')} label="the-dates"/>
                 </View>
                 <View className="flex-row justify-center items-center mb-8">
-                    <Icon iconSource={require('@/assets/icons/travel.png')} label="Explore"/>
-                    <Icon iconSource={require('@/assets/icons/review.png')} label="Memories"/>
-                    <Icon iconSource={require('@/assets/icons/dates.png')} label="Food Baby"/>
+                    <Icon iconSource={require('@/assets/icons/travel.png')} label="explore"/>
+                    <Icon iconSource={require('@/assets/icons/review.png')} label="memories"/>
+                    <Icon iconSource={require('@/assets/icons/dates.png')} label="food-baby"/>
                 </View>
 
                 {/* Date Section - Middle */}
@@ -114,7 +114,7 @@ export default function RoomScreen() {
                 </View>
 
                 {/* Button Section - Bottom */}
-                <TouchableOpacity className="rec-button mx-5 absolute bottom-20 left-10" onPress={handleLeaveRoom}>
+                <TouchableOpacity className="rec-button mx-5 absolute bottom-20 left-5" onPress={handleLeaveRoom}>
                     <Text className="text-white text-center text-[16px]">Leave Room</Text>
                 </TouchableOpacity>
 

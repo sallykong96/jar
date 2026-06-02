@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useFocusEffect, usePathname } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ function RoomBanner() {
     const insets = useSafeAreaInsets();
     const bannerTopPosition = insets.top;
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
+    const pathname = usePathname(); // Get current path
     const [ creator, setCreator ] = useState('');
     const [ joiner, setJoiner ] = useState('');
 
@@ -22,17 +23,22 @@ function RoomBanner() {
         }
     }, [roomName]);
 
-    // Initial fetch when component mounts
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    // Refetch data when the screen comes into focus (e.g., after returning from add-partner)
     useFocusEffect(
         useCallback(() => {
             fetchData();
         }, [fetchData])
     );
+
+    // Only show banner on index screen
+    const isIndexScreen = pathname === `/room/${roomName}` || pathname.endsWith('/index');
+
+    if (!isIndexScreen) {
+        return null; // Don't render banner on non-index screens
+    }
 
     return (
         <View style={[styles.banner, { top: bannerTopPosition }]} className="w-full">
@@ -62,11 +68,11 @@ export default function RoomLayout() {
 const styles = StyleSheet.create({
     banner: {
         position: 'absolute',
-        backgroundColor: 'rgba(242, 242, 242, 0.15)', // Pink to match your theme
+        backgroundColor: 'rgba(242, 242, 242, 0.15)',
         paddingHorizontal: 20,
         alignItems: 'center',
         zIndex: 100,
-        paddingVertical: 12,
+        paddingVertical: 8,
     },
     bannerText: {
         color: '#696969',

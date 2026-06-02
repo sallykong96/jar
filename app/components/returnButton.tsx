@@ -7,7 +7,7 @@ interface ReturnButtonProps {
     className?: string;
 }
 
-export function ReturnButton({roomName, label = "Home", className = ""}: ReturnButtonProps) {
+export function ReturnButton({roomName, label = "Back", className = ""}: ReturnButtonProps) {
     const params = useLocalSearchParams<{ roomName: string }>();
     const activeRoomName = roomName || params.roomName;
 
@@ -28,7 +28,7 @@ export function ReturnButton({roomName, label = "Home", className = ""}: ReturnB
     }
 
     return (
-        <TouchableOpacity onPress={handleGoBack} className="rec-button mx-5 absolute bottom-20 left-10">
+        <TouchableOpacity onPress={handleGoBack} className="rec-button mx-5 absolute bottom-20 left-5">
             <Text className="text-white text-center text-[16px]">{label}</Text>
         </TouchableOpacity>
     );

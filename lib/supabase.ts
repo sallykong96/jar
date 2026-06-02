@@ -143,7 +143,7 @@ export async function checkDates(roomName: string) {
             .from('dates')
             .select('met_date, start_dating')
             .eq('room_name', roomName)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error('Supabase error:', error);
@@ -258,4 +258,39 @@ export async function addPartner(userId: string, roomName: string) {
         console.error('Caught error in addPartner:', err);
         throw err;
     }
+}
+
+export async function getReviewStatus(roomName: string) {
+    console.log('Checking status for:', roomName);
+
+    try {
+        const { data, error } = await supabase
+            .from('review')
+            .select('id, date, partner_status, own_status')
+            .eq('room_name', roomName)
+            .order('date', { ascending: true });
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        const formattedData = data?.map(item => ({
+            ...item,
+            date: formatDateToDDMMYYYY(item.date)
+        })) || [];
+        console.log('Retrieved records:', formattedData);
+        return formattedData;
+    } catch (err) {
+        console.error('Caught error in getReviewStatus:', err);
+        throw err;
+    }
+}
+
+function formatDateToDDMMYYYY(date: string | Date): string {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
 }

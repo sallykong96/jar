@@ -1,14 +1,39 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { ImageSourcePropType } from 'react-native';
+import {router, useLocalSearchParams} from "expo-router";
 
 interface IconCardProps {
     iconSource: ImageSourcePropType;
     label: string;
+    disabled?: boolean;
 }
 
-export default function Icon({ iconSource,label }: IconCardProps) {
+export default function Icon({ iconSource, label, disabled = false }: IconCardProps) {
+    const params = useLocalSearchParams<{ roomName: string }>();
+
+    // Extract roomName as a string properly
+    let roomNameString = '';
+    if (params.roomName) {
+        roomNameString = Array.isArray(params.roomName)
+            ? params.roomName[0]
+            : String(params.roomName);
+    }
+
+    const onPress = async () => {
+        if (!roomNameString) {
+            console.error('No roomName available');
+            return;
+        }
+        router.push(`/room/${encodeURIComponent(roomNameString)}/${label}`);
+    };
+
     return (
-        <View className="items-center mx-4 w-28 h-24">
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={disabled}
+            activeOpacity={0.7}
+            className="items-center mx-4 w-28 h-24"
+        >
             <View className="bg-red-500/50 rounded-full w-18 h-18 items-center justify-center">
                 <Image
                     source={iconSource}
@@ -20,6 +45,6 @@ export default function Icon({ iconSource,label }: IconCardProps) {
             <Text className="text-white mt-2 text-center text-light opacity-70 text-[16px]">
                 {label}
             </Text>
-        </View>
+        </TouchableOpacity>
     );
 }
