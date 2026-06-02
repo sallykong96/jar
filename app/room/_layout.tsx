@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     },
     bannerText: {
         color: '#696969',
-        fontSize: 16,
+        fontSize: 18,
     },
     bannerButton: {
         paddingVertical: 12,

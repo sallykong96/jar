@@ -155,11 +155,11 @@ export default function Index() {
     return (
         <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
             <ScrollView contentContainerClassName="justify-center px-5">
-                <Text className="text-4xl text-white font-artistic mt-40 ml-20 text-left">
+                <Text className="text-5xl text-white font-artistic mt-50 ml-20 text-left">
                     {mode === 'signIn' ? 'Grow the love in a' : ''}
                 </Text>
                 <View className="items-center">
-                    <Text className="text-8xl text-white font-artistic mb-10">
+                    <Text className="text-[130px] text-white font-artistic mb-10">
                         {mode === 'signIn' ? 'Jar' : 'Create Account'}
                     </Text>
 
@@ -190,13 +190,13 @@ export default function Index() {
                     )}
 
                     <TouchableOpacity className="auth-button" onPress={mode === 'signIn' ? onSignIn : onSignUp} disabled={loading}>
-                        <Text className="text-white opacity-80">
+                        <Text className="text-white opacity-80 text-[18px]">
                             {loading ? 'Please wait...' : mode === 'signIn' ? 'Sign In' : 'Sign Up'}
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => { setMode(mode === 'signIn' ? 'signUp' : 'signIn'); setEmail(''); setPassword(''); setName('')}}>
-                        <Text className="text-white opacity-80">
+                        <Text className="text-white opacity-80 text-[18px]">
                             {mode === 'signIn' ? 'Create an account' : 'Already have an account? Sign In'}
                         </Text>
                     </TouchableOpacity>

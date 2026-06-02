@@ -102,20 +102,20 @@ export default function RoomScreen() {
                 {/* Date Section - Middle */}
                 <View className="mb-8">
                     <View className="flex-row items-baseline pl-10">
-                        <Text className="text-4xl text-white font-artistic opacity-70">Met </Text>
+                        <Text className="text-5xl text-white font-artistic opacity-70">Met </Text>
                         <Text className="text-8xl text-white font-artistic">{daysSinceMet}</Text>
-                        <Text className="text-4xl text-white font-artistic opacity-70"> days ago</Text>
+                        <Text className="text-5xl text-white font-artistic opacity-70"> days ago</Text>
                     </View>
                     <View className="flex-row items-baseline pl-30 -mt-6">
-                        <Text className="text-4xl text-white font-artistic opacity-70">Dated for </Text>
+                        <Text className="text-5xl text-white font-artistic opacity-70">Dated for </Text>
                         <Text className="text-8xl text-white font-artistic">{daysSinceStarted}</Text>
-                        <Text className="text-4xl text-white font-artistic "> days</Text>
+                        <Text className="text-5xl text-white font-artistic "> days</Text>
                     </View>
                 </View>
 
                 {/* Button Section - Bottom */}
-                <TouchableOpacity className="auth-button mx-5 absolute bottom-20 left-10" onPress={handleLeaveRoom}>
-                    <Text className="text-white text-center">Leave Room</Text>
+                <TouchableOpacity className="rec-button mx-5 absolute bottom-20 left-10" onPress={handleLeaveRoom}>
+                    <Text className="text-white text-center text-[16px]">Leave Room</Text>
                 </TouchableOpacity>
             </View>
         </ImageBackground>

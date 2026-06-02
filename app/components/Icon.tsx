@@ -9,7 +9,7 @@ interface IconCardProps {
 export default function Icon({ iconSource,label }: IconCardProps) {
     return (
         <View className="items-center mx-4 w-28 h-24">
-            <View className="bg-pink-500/30 rounded-full w-18 h-18 items-center justify-center">
+            <View className="bg-red-500/50 rounded-full w-18 h-18 items-center justify-center">
                 <Image
                     source={iconSource}
                     className="w-10 h-10"
@@ -17,7 +17,7 @@ export default function Icon({ iconSource,label }: IconCardProps) {
                     tintColor="white"
                 />
             </View>
-            <Text className="text-white mt-2 text-center text-light opacity-70">
+            <Text className="text-white mt-2 text-center text-light opacity-70 text-[16px]">
                 {label}
             </Text>
         </View>

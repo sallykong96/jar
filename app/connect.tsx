@@ -2,7 +2,7 @@ import {Alert, ImageBackground, Text, TextInput, TouchableOpacity, View} from "r
 import "@/global.css"
 import {useState} from "react";
 import {createRoom, checkRoom} from "@/lib/supabase";
-import { useUser } from '@clerk/clerk-expo';
+import { useUser, useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 
 
@@ -12,6 +12,18 @@ export default function Connect() {
     const [password, setPassword] = useState('');
     const [mode, setMode] = useState<'enter' | 'create'>('enter');
     const { user } = useUser();
+    const { signOut } = useAuth();
+
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            // Router will automatically redirect based on your root layout
+            router.replace('/');
+        } catch (err: any) {
+            console.error('Sign out error:', err);
+            Alert.alert('Error', 'Failed to sign out');
+        }
+    };
 
     const onCreate = async () => {
         setLoading(true);
@@ -70,17 +82,20 @@ export default function Connect() {
                 secureTextEntry
             />
                 <TouchableOpacity className="auth-button" onPress={mode === 'enter' ? onEnter : onCreate} disabled={loading}>
-                    <Text className="text-white opacity-80  text-[16px]">
-                        {loading ? 'Please wait...' : mode === 'enter' ? 'Enter' : 'Create'}
+                    <Text className="text-white opacity-80 text-[18px]">
+                        {loading ? 'Please Wait...' : mode === 'enter' ? 'Enter' : 'Create'}
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => { setMode(mode === 'enter' ? 'create' : 'enter'); setRoomName(''); setPassword('')}}>
-                    <Text className="text-white opacity-80">
+                    <Text className="text-white opacity-80 text-[18px]">
                         {mode === 'enter' ? 'Create a Room' : 'Already have a room? Enter'}
                     </Text>
                 </TouchableOpacity>
                 </View>
+            <TouchableOpacity className="absolute bottom-20 left-10 rec-button z-10" onPress={handleSignOut}>
+                <Text className="text-white text-[16px]">Sign Out</Text>
+            </TouchableOpacity>
 
         </ImageBackground>
     )
