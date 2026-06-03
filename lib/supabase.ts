@@ -294,3 +294,30 @@ function formatDateToDDMMYYYY(date: string | Date): string {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
 }
+const convertToISODate = (dateStr: string) => {
+    const [day, month, year] = dateStr.split('-');
+    return `${year}-${month}-${day}`;
+};
+export async function getReviewByDate(roomName: string, date: string) {
+    try {
+        const isoDate = convertToISODate(date);
+        const { data, error } = await supabase
+            .from('review')
+            .select('partner_content, own_content')
+            .eq('room_name', roomName)
+            .gte('created_at', `${isoDate}T00:00:00Z`)
+            .lte('created_at', `${isoDate}T23:59:59Z`);
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+
+        console.log('data:', data);
+
+        return data;
+    } catch (err) {
+        console.error('Caught error in getReviewByDate:', err);
+        throw err;
+    }
+}

@@ -6,12 +6,13 @@ interface PartnerSaysButtonProps {
     iconSource: ImageSourcePropType;
     label: string;
     disabled?: boolean;
+    roomName?: string;
+    whose? : string;
 }
 
-export default function PartnerSaysButton({ iconSource, label, disabled = false }: PartnerSaysButtonProps) {
-    const roomName = useLocalSearchParams<{ roomName: string }>();
+export default function PartnerSaysButton({ iconSource, label, disabled = false, roomName, whose }: PartnerSaysButtonProps) {
     const onPress = async () => {
-        // router.push(`/room/${roomName}/${label}`);
+        router.push(`/room/${roomName}/partner-says/${label}/${whose}`);
     }
     let color = 'black';
     if (iconSource === require('@/assets/icons/tick.png')) {
@@ -20,7 +21,7 @@ export default function PartnerSaysButton({ iconSource, label, disabled = false 
 
     return (
         <TouchableOpacity
-            onPress={onPress}
+            onPress={iconSource === 0 ? () => {} : onPress}
             disabled={disabled}
             activeOpacity={0.7}
             className="items-center mx-4"
