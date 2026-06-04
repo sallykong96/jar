@@ -1,39 +1,36 @@
-// app/room/[roomName]/partner-says/[whose].tsx
+// app/room/[roomName]/partner-says/index.tsx
 import { View, Text, ImageBackground } from 'react-native';
-import {useLocalSearchParams, router, usePathname} from 'expo-router';
-import { ReturnButton } from "@/app/components/returnButton";
+import {useLocalSearchParams, usePathname} from 'expo-router';
 import { useEffect, useState } from 'react';
 import { getReviewByDate } from '@/lib/supabase'; // You'll need to create this function
 
 export default function PartnerSaysDetail() {
 
-    const [reviewData, setReviewData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-
+    const params = useLocalSearchParams();
     const pathname = usePathname();
     const match = pathname.match(/\/room\/([^\/]+)\/partner-says\/([^\/]+)\/([^\/]+)/);
     const roomName = match ? decodeURIComponent(match[1]) : '';
     const date = match ? decodeURIComponent(match[2]) : '';
-    const whose = match ? decodeURIComponent(match[3]) : '';
-    console.log('PartnerSaysDetail pathname:', pathname);
-    console.log('PartnerSaysDetail whose:', whose);
+    const identity = match ? decodeURIComponent(match[3]) : '';
 
+    const [reviewData, setReviewData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             if (roomName && date) {
                 const data = await getReviewByDate(roomName, date);
-                if (whose === 'partners') {
-                    setReviewData(data[0].partner_content);
+                if (params.colIdentity === 'creator') {
+                    setReviewData(data[0].creator_content);
                 } else {
-                    setReviewData(data[0].own_content);
+                    setReviewData(data[0].joiner_content);
                 }
 
                 setLoading(false);
             }
         };
         fetchData();
-    }, [roomName, date, whose]);
+    }, [roomName, date, identity]);
 
     if (loading) {
         return (
@@ -48,8 +45,6 @@ export default function PartnerSaysDetail() {
             </ImageBackground>
         );
     }
-
-
 
     return (
         <ImageBackground
@@ -66,7 +61,7 @@ export default function PartnerSaysDetail() {
 
                 <View className="bg-white/20 rounded-lg overflow-hidden">
                     <View className="bg-red px-4 py-2">
-                        <Text className="text-white text-[18px]">{whose === 'yours'? 'I feel that ...': "Your partner says ..."}</Text>
+                        <Text className="text-white text-[18px]">{identity === params.colIdentity? 'I feel that ...': "Your partner says ..."}</Text>
                     </View>
                     <View className="p-4">
                         <Text className="text-white mb-2 text-[17px]">{reviewData}</Text>

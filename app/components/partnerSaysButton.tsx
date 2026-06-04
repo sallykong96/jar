@@ -7,12 +7,24 @@ interface PartnerSaysButtonProps {
     label: string;
     disabled?: boolean;
     roomName?: string;
-    whose? : string;
+    colIdentity?: string;
+    identity? : string;
+    status: string;
+
 }
 
-export default function PartnerSaysButton({ iconSource, label, disabled = false, roomName, whose }: PartnerSaysButtonProps) {
+export default function PartnerSaysButton({ iconSource, label, disabled = false, roomName, colIdentity, identity, status }: PartnerSaysButtonProps) {
     const onPress = async () => {
-        router.push(`/room/${roomName}/partner-says/${label}/${whose}`);
+        if (status === 'read') {
+            router.push({
+                pathname: `/room/${roomName}/partner-says/${label}/${identity}` as any,
+                params: {
+                    colIdentity: colIdentity,
+                }
+            });
+        } else if (colIdentity === identity) {
+            router.push(`/room/${roomName}/partner-says/${label}/${identity}/edit`);
+        }
     }
     let color = 'black';
     if (iconSource === require('@/assets/icons/tick.png')) {

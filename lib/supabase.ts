@@ -2,6 +2,7 @@ import 'react-native-url-polyfill/auto'
 import { createClient } from '@supabase/supabase-js'
 import 'expo-sqlite/localStorage/install'
 import {Alert} from "react-native";
+import {identity} from "react-native-svg/src/lib/Matrix2D";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!
@@ -266,7 +267,7 @@ export async function getReviewStatus(roomName: string) {
     try {
         const { data, error } = await supabase
             .from('review')
-            .select('id, date, partner_status, own_status')
+            .select('id, date, creator_status, joiner_status')
             .eq('room_name', roomName)
             .order('date', { ascending: true });
 
@@ -294,16 +295,18 @@ function formatDateToDDMMYYYY(date: string | Date): string {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
 }
+
 const convertToISODate = (dateStr: string) => {
     const [day, month, year] = dateStr.split('-');
     return `${year}-${month}-${day}`;
 };
+
 export async function getReviewByDate(roomName: string, date: string) {
     try {
         const isoDate = convertToISODate(date);
         const { data, error } = await supabase
             .from('review')
-            .select('partner_content, own_content')
+            .select('creator_content, joiner_content')
             .eq('room_name', roomName)
             .gte('created_at', `${isoDate}T00:00:00Z`)
             .lte('created_at', `${isoDate}T23:59:59Z`);
@@ -318,6 +321,56 @@ export async function getReviewByDate(roomName: string, date: string) {
         return data;
     } catch (err) {
         console.error('Caught error in getReviewByDate:', err);
+        throw err;
+    }
+}
+
+export const updateReviewByDate = async (roomName: string, date: string, content: string, identity: string) => {
+
+    const isoDate = convertToISODate(date);
+    const { data, error } = await supabase
+        .from('review')
+        .update({
+            [`${identity}_content`]: content,
+            [`${identity}_status`]: 'done'
+        })
+        .eq('room_name', roomName)
+        .gte('created_at', `${isoDate}T00:00:00Z`)
+        .lte('created_at', `${isoDate}T23:59:59Z`)
+        .select();
+
+    if (error) {
+        console.error('Error updating review:', error);
+        throw error;
+    }
+
+    return data;
+};
+
+
+export async function checkIdentity(roomName: string, userId: string) {
+    console.log('checkIdentity:', userId);
+
+    try {
+        const { data, error } = await supabase
+            .from('connections')
+            .select('creator, joiner')
+            .eq('room_name', roomName)
+
+        if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+        }
+        let identity = '';
+        if (data[0].creator) {
+            identity = 'creator';
+        } else if (data[0].joiner) {
+            identity = 'joiner';
+        }
+        return identity;
+
+    } catch (err) {
+        console.error('Caught error in checkUser:', err);
         throw err;
     }
 }

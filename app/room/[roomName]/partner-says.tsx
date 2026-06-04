@@ -2,14 +2,17 @@
 import { View, Text, ImageBackground, TouchableOpacity } from 'react-native';
 import PartnerSaysButton from "@/app/components/partnerSaysButton";
 import { ReturnButton } from "@/app/components/returnButton";
-import { router, usePathname } from "expo-router";
-import { getReviewStatus } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { router, usePathname, useFocusEffect } from "expo-router";
+import {checkIdentity, getReviewStatus} from "@/lib/supabase";
+import { useEffect, useState, useCallback } from "react";
+import { useUser } from '@clerk/clerk-expo';
 
 export default function PartnerSays() {
     const pathname = usePathname();
     const match = pathname.match(/\/room\/([^\/]+)\/partner-says/);
     const roomName = match ? decodeURIComponent(match[1]) : '';
+    const { user } = useUser();
+    const userId = user?.id;
 
     console.log('PartnerSays roomName:', roomName);
     const [tableData, setTableData] = useState<any[]>([]);
@@ -21,15 +24,14 @@ export default function PartnerSays() {
             setLoading(false);
             return;
         }
-
         try {
             const data = await getReviewStatus(roomName);
             if (data && data.length > 0) {
                 const transformedData = data.map(item => ({
                     no: item.id,
                     date: item.date,
-                    partners: item.partner_status,
-                    yours: item.own_status,
+                    creator: item.creator_status,
+                    joiner: item.joiner_status,
 
                 }));
                 setTableData(transformedData);
@@ -48,34 +50,40 @@ export default function PartnerSays() {
         fetchData();
     }, [roomName]);
 
-    const handleStatusPress = (date: string, whose: 'partners' | 'yours') => {
-        // Navigate to the date-specific page
-        // URL: /room/[roomName]/partner-says/[date]
-        router.push(`/room/${roomName}/partner-says/${date}/${whose}`);
-    };
+    useFocusEffect(
+        useCallback(() => {
+            console.log('Screen focused, refreshing data...');
+            fetchData();
+        }, [])
+    );
+    const [userIdentity, setUserIdentity] = useState<string>('');
 
-    const getPartnerButton = (status: string, date: string, whose: 'partners' | 'yours') => {
-        const button = (() => {
+    useEffect(() => {
+        const fetchUserIdentity = async () => {
+            if (userId) {
+                const identity = await checkIdentity(roomName, userId);
+                console.log('identity:', identity);
+                setUserIdentity(identity);
+            }
+        };
+        fetchUserIdentity();
+    }, [userId]);
+
+
+    const getButton = (status: string, date: string, colIdentity: string) => {
             switch(status) {
                 case 'pending':
-                    return <PartnerSaysButton iconSource={require('@/assets/icons/edit.png')} label={date} roomName={roomName} whose={whose} />;
+                    return <PartnerSaysButton iconSource={require('@/assets/icons/edit.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
                 case 'read':
-                    return <PartnerSaysButton iconSource={require('@/assets/icons/eye.png')} label={date} roomName={roomName} whose={whose}/>;
+                    return <PartnerSaysButton iconSource={require('@/assets/icons/eye.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
                 case 'done':
-                    return <PartnerSaysButton iconSource={require('@/assets/icons/tick.png')} label={date} roomName={roomName} whose={whose}/>;
+                    return <PartnerSaysButton iconSource={require('@/assets/icons/tick.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
                 case 'late':
-                    return <PartnerSaysButton iconSource={0} label={date} />;
+                    return <PartnerSaysButton iconSource={0} label={date} status={status}/>;
                 default:
-                    return <PartnerSaysButton iconSource={0} label={date} />;
+                    return <PartnerSaysButton iconSource={0} label={date} status={status}/>;
             }
-        })();
-
-        return (
-            <TouchableOpacity onPress={() => handleStatusPress(date, whose)}>
-                {button}
-            </TouchableOpacity>
-        );
-    };
+};
 
     if (loading) {
         return (
@@ -92,11 +100,7 @@ export default function PartnerSays() {
     }
 
     return (
-        <ImageBackground
-            source={require('@/assets/images/partner-says.png')}
-            className="flex-1 w-full h-full"
-            resizeMode="cover"
-        >
+        <ImageBackground source={require('@/assets/images/partner-says.png')} className="flex-1 w-full h-full" resizeMode="cover">
             <View className="flex-1 justify-start p-4 mt-25">
                 <Text className="text-white font-artistic mb-2 text-[60px] text-center">
                     Partner Says
@@ -105,8 +109,8 @@ export default function PartnerSays() {
                     <View className="flex-row bg-red">
                         <Text className="flex-1 py-2 text-center text-white text-[16px]">No</Text>
                         <Text className="flex-1 py-2 text-center text-white text-[16px]">Date</Text>
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Partner's</Text>
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Yours</Text>
+                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Creator{userIdentity === 'creator'? '(You)':''}</Text>
+                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Joiner{userIdentity === 'joiner'? '(You)':''}</Text>
                     </View>
 
                     {tableData.length > 0 ? (
@@ -119,16 +123,16 @@ export default function PartnerSays() {
                                     {item.date}
                                 </Text>
                                 <View className="flex-1 items-center justify-center">
-                                    {getPartnerButton(item.partners, item.date, 'partners')}
+                                    {getButton(item.creator, item.date, 'creator')}
                                 </View>
                                 <View className="flex-1 items-center justify-center">
-                                    {getPartnerButton(item.yours, item.date, 'yours')}
+                                    {getButton(item.joiner, item.date, 'joiner')}
                                 </View>
                             </View>
                         ))
                     ) : (
                         <View className="py-8">
-                            <Text className="text-white text-center">No review data available for {roomName}</Text>
+                            <Text className="text-white text-center">No data available for {roomName}</Text>
                         </View>
                     )}
                 </View>
