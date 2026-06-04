@@ -98,7 +98,7 @@ export async function createRoom(user: any, roomName: string, password: string) 
 }
 
 export async function checkRoom(user: any, roomName: string, password: string) {
-    console.log('Checking room status:', {
+    console.log('checkRoom:', {
         user: user,
         roomName: roomName,
         password: password,
@@ -362,9 +362,9 @@ export async function checkIdentity(roomName: string, userId: string) {
             throw error;
         }
         let identity = '';
-        if (data[0].creator) {
+        if (data[0].creator === userId) {
             identity = 'creator';
-        } else if (data[0].joiner) {
+        } else if (data[0].joiner === userId) {
             identity = 'joiner';
         }
         return identity;
@@ -372,5 +372,86 @@ export async function checkIdentity(roomName: string, userId: string) {
     } catch (err) {
         console.error('Caught error in checkUser:', err);
         throw err;
+    }
+}
+
+export async function insertReviewNewDate() {
+    try {
+        console.log("!!!!!!!!!!!!!!!!!!!");
+
+        const { data, error } = await supabase
+            .from('review')
+            .select('distinct(room_name)')
+            .order('room_name')
+
+        if (error) throw error;
+
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        const newRows = [];
+
+        for (const room of data[0].distinct || []) {
+
+            const { data, error } = await supabase
+                .from('review')
+                .select('created_at')
+                .eq('room_name', room.room_name)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error) {
+                console.error(`Error fetching latest date for room ${room}:`, error);
+                continue;
+            }
+
+            let needsNewRow = false;
+
+            if (!data || data.length === 0) {
+                needsNewRow = true;
+            } else {
+                const latestDate = new Date(data[0].created_at);
+                const daysDifference = Math.floor(
+                    (today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24)
+                );
+
+                if (daysDifference > 1) {
+                    needsNewRow = true;
+                    console.log(`Room ${room.room_name}: Last review was ${daysDifference} days ago, needs new row`);
+                }
+            }
+
+            if (needsNewRow) {
+                newRows.push({
+                    room_name: room.room_name,
+                    created_at: todayString,
+                    creator_status: 'pending',
+                    joiner_status: 'pending',
+                    creator_content: null,
+                    joiner_content: null
+                });
+            }
+        }
+
+        if (newRows.length > 0) {
+            const { data, error } = await supabase
+                .from('review')
+                .insert(newRows)
+                .select();
+
+            if (error) throw error;
+
+            console.log(`Inserted ${newRows.length} new review rows`);
+            return { success: true, inserted: newRows.length, data };
+        } else {
+            console.log('No new rows needed');
+            return { success: true, inserted: 0 };
+        }
+
+    } catch (error) {
+        console.error('Error in insertReviewNewDate:', error);
+        return { success: false, error };
     }
 }

@@ -73,6 +73,7 @@ export default function RootLayout() {
         'tangerine-regular': require('../assets/fonts/tangerine-regular.ttf'),
     });
 
+
     useEffect(() => {
         if (fontsLoaded) {
             SplashScreen.hideAsync();

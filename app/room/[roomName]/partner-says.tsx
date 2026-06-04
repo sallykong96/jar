@@ -20,7 +20,7 @@ export default function PartnerSays() {
 
     const fetchData = async () => {
         if (!roomName) {
-            console.error('No roomName provided');
+            // console.error('No roomName provided');
             setLoading(false);
             return;
         }
@@ -73,7 +73,10 @@ export default function PartnerSays() {
     const getButton = (status: string, date: string, colIdentity: string) => {
             switch(status) {
                 case 'pending':
-                    return <PartnerSaysButton iconSource={require('@/assets/icons/edit.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
+                    if (colIdentity === userIdentity) {
+                        return <PartnerSaysButton iconSource={require('@/assets/icons/edit.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
+                    }
+                    return <PartnerSaysButton iconSource={require('@/assets/icons/clock.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
                 case 'read':
                     return <PartnerSaysButton iconSource={require('@/assets/icons/eye.png')} label={date} roomName={roomName} colIdentity={colIdentity} identity={userIdentity} status={status}/>;
                 case 'done':
@@ -109,8 +112,8 @@ export default function PartnerSays() {
                     <View className="flex-row bg-red">
                         <Text className="flex-1 py-2 text-center text-white text-[16px]">No</Text>
                         <Text className="flex-1 py-2 text-center text-white text-[16px]">Date</Text>
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Creator{userIdentity === 'creator'? '(You)':''}</Text>
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Joiner{userIdentity === 'joiner'? '(You)':''}</Text>
+                        <Text className="flex-1 py-2 text-center text-white text-[16px]">{userIdentity === 'creator'? 'You':'Creator'}</Text>
+                        <Text className="flex-1 py-2 text-center text-white text-[16px]">{userIdentity === 'joiner'? ' You':'Joiner'}</Text>
                     </View>
 
                     {tableData.length > 0 ? (

@@ -26,7 +26,7 @@ export default function PartnerSaysButton({ iconSource, label, disabled = false,
             router.push(`/room/${roomName}/partner-says/${label}/${identity}/edit`);
         }
     }
-    let color = 'black';
+    let color = 'white';
     if (iconSource === require('@/assets/icons/tick.png')) {
         color = 'green';
     }

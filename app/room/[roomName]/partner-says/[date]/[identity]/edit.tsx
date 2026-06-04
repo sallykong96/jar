@@ -97,7 +97,7 @@ export default function PartnerSaysEdit() {
             resizeMode="cover"
         >
             <View className="flex-1 justify-start p-4 mt-25">
-                <Text className="text-white text-center font-bold text-[20px] mb-5">
+                <Text className="text-white text-center font-artistic text-[50px] mb-2">
                     {date}
                 </Text>
 
