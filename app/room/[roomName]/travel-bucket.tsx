@@ -1,10 +1,11 @@
 // app/room/[roomName]/partner-says.tsx
-import { View, Text, ImageBackground, TouchableOpacity } from 'react-native';
+import {View, Text, ImageBackground, TouchableOpacity, Alert} from 'react-native';
 import { ReturnButton } from "@/app/components/returnButton";
 import {useLocalSearchParams, usePathname} from "expo-router";
-import { getTravelList} from "@/lib/supabase";
+import {deleteTravelItem, getTravelList} from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import DateFrame from "@/app/components/dateFrame";
+import SwipeableListItem from "@/app/components/swipeableListItem";
 
 export default function TravelBucket() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
@@ -12,34 +13,61 @@ export default function TravelBucket() {
     const [toGoList, setToGoList] = useState<any[]>([]);
     const [beenToList, setBeenToList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState(false);
+
+    const fetchData = async () => {
+        if (!roomName) {
+            setLoading(false);
+            return;
+        }
+        try {
+            const togoData = await getTravelList(roomName, 'go');
+            setToGoList(togoData);
+            const beenToData = await getTravelList(roomName, 'been');
+            setBeenToList(beenToData);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setToGoList([]);
+            setBeenToList([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!roomName) {
-                setLoading(false);
-                return;
-            }
-            try {
-                const togoData = await getTravelList(roomName, 'go');
-                setToGoList(togoData);
-                const beenToData = await getTravelList(roomName, 'been');
-                setBeenToList(beenToData);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                setToGoList([]);
-                setBeenToList([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
-    }, [roomName]); // Only re-fetch when roomName changes
+    }, [roomName]);
+
+    const handleDelete = async (itemId: string, type: 'go' | 'been') => {
+        Alert.alert(
+            "Delete Item",
+            "Are you sure you want to delete this item?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        setDeleting(true);
+                        try {
+                            await deleteTravelItem(itemId);
+                            await fetchData();
+                        } catch (error) {
+                            console.error("Error deleting:", error);
+                            Alert.alert("Error", "Failed to delete item");
+                        } finally {
+                            setDeleting(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     if (loading) {
         return (
             <ImageBackground
-                source={require('@/assets/images/partner-says.png')}
+                source={require('@/assets/images/travel-bucket.png')}
                 className="flex-1 w-full h-full"
                 resizeMode="cover"
             >
@@ -67,18 +95,20 @@ export default function TravelBucket() {
 
                     {toGoList.length > 0 ? (
                         toGoList.map((item, index) => (
-                            <View key={item.id || index} className="flex-row bg-white/10 items-center">
-                                <Text className="flex-1 py-3 text-center text-white text-[16px]">
-                                    {item.destination}
-                                </Text>
-                                <Text className="w-40 text-center text-white text-[16px]">
-                                    <DateFrame date={item.date_start}/>
-                                </Text>
-                            </View>
+                            <SwipeableListItem
+                                key={item.id || index}
+                                destination={item.destination}
+                                dateStart={item.date_start}
+                                dateEnd={item.date_end}
+                                onDelete={() => handleDelete(item.id, 'go')}
+                                color="#E37100"
+                            />
                         ))
                     ) : (
                         <View className="py-8">
-                            <Text className="text-white text-center">No data available for {roomName}</Text>
+                            <Text className="text-white text-center opacity-80">
+                                No places to go yet ✈️
+                            </Text>
                         </View>
                     )}
                 </View>
@@ -90,21 +120,20 @@ export default function TravelBucket() {
 
                     {beenToList.length > 0 ? (
                         beenToList.map((item, index) => (
-                            <View key={item.id || index} className="flex-row bg-white/10 items-center">
-                                <Text className="flex-1 py-3 text-center text-white text-[17px]">
-                                    {item.destination}
-                                </Text>
-                                <Text className="w-40 text-center text-white text-[16px]">
-                                    <View className="gap-0.5">
-                                        <DateFrame date={item.date_start}/>
-                                        <DateFrame date={item.date_end} color="navy"/>
-                                    </View>
-                                </Text>
-                            </View>
+                            <SwipeableListItem
+                                key={item.id || index}
+                                destination={item.destination}
+                                dateStart={item.date_start}
+                                dateEnd={item.date_end}
+                                onDelete={() => handleDelete(item.id, 'go')}
+                                color="#E37100"
+                            />
                         ))
                     ) : (
                         <View className="py-8">
-                            <Text className="text-white text-center">No data available for {roomName}</Text>
+                            <Text className="text-white text-center opacity-80">
+                                No visited places yet ✈️
+                            </Text>
                         </View>
                     )}
                 </View>

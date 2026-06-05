@@ -4,6 +4,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {checkUser} from "@/lib/supabase";
 import {useState, useEffect, useCallback} from "react";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 function RoomBanner() {
     const insets = useSafeAreaInsets();
@@ -35,7 +36,7 @@ function RoomBanner() {
     const isIndexScreen = pathname === `/room/${roomName}` || pathname.endsWith('/index');
 
     if (!isIndexScreen) {
-        return null; // Don't render banner on non-index screens
+        return null;
     }
 
     return (
@@ -54,12 +55,14 @@ function RoomBanner() {
 export default function RoomLayout() {
     const { isSignedIn } = useAuth();
     return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
             {isSignedIn && <RoomBanner />}
             <Stack screenOptions={{ headerShown: false }}>
                 {/*<Stack.Screen name="/room/[roomName]" />*/}
             </Stack>
         </View>
+        </GestureHandlerRootView>
     );
 }
 

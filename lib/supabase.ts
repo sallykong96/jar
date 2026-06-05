@@ -295,3 +295,16 @@ export async function getTravelList(roomName: string, group: string) {
         date_end: formatDateToYYYYMMDD(item.date_end)
     })) || [];
 }
+
+export async function deleteTravelItem(itemId: string) {
+    const { error } = await supabase
+        .from('travel')
+        .delete()
+        .eq('id', itemId);
+
+    if (error) {
+        console.error('Error deleting travel item:', error);
+        throw error;
+    }
+    return true;
+}

@@ -5,10 +5,16 @@ interface DateFrameProps {
     color?: string;
 }
 
-export default function DateFrame({ date, color = 'orange' }: DateFrameProps) {
+export default function DateFrame({ date, color = '#E37100' }: DateFrameProps) {
+
     return (
-        <View className={`bg-${color} px-3 rounded-x font-bold rounded-2xl`}>
-            <Text className="font-semibold text-white text-[15px]">{date}</Text>
+        <View
+            style={{ backgroundColor: color }}
+            className="px-3 rounded-2xl"
+        >
+            <Text className="font-semibold text-white text-[15px]">
+                {date}
+            </Text>
         </View>
     );
 }
