@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Image, ImageBackground, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useUser } from '@clerk/clerk-expo';
-import {checkDates, supabase} from '@/lib/supabase';
+import {checkDates} from '@/lib/supabase';
 import Icon from '../../components/Icon';
 
 interface Dates {
@@ -12,7 +11,6 @@ interface Dates {
 
 export default function RoomScreen() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
-    const { user } = useUser();
     const [dates, setDates] = useState<Dates | null>(null);
     const [daysSinceMet, setDaysSinceMet] = useState(0)
     const [daysSinceStarted, setDaysSinceStarted] = useState(0)
@@ -40,8 +38,6 @@ export default function RoomScreen() {
             setLoading(true);
             const Dates = await checkDates(roomName)
             setDates(Dates);
-            console.log('loading:', loading);
-            console.log('Dates:', Dates);
         } catch (err: any) {
             console.error('Error fetching dates:', err);
             Alert.alert('Error', 'Failed to load room data');
@@ -89,14 +85,14 @@ export default function RoomScreen() {
             <View className="flex-1 mt-40">
                 {/* Icons Section */}
                 <View className="flex-row justify-center items-center mb-8">
-                    <Icon iconSource={require('@/assets/icons/travel.png')} label="travel-bucket"/>
-                    <Icon iconSource={require('@/assets/icons/review.png')} label="partner-says"/>
-                    <Icon iconSource={require('@/assets/icons/dates.png')} label="the-dates"/>
+                    <Icon iconSource={require('@/assets/icons/plane.png')} label="travel-bucket" title='Travel Bucket'/>
+                    <Icon iconSource={require('@/assets/icons/chat.png')} label="partner-says" title='Partner Says'/>
+                    <Icon iconSource={require('@/assets/icons/anniversary.png')} label="the-dates" title='The Dates'/>
                 </View>
                 <View className="flex-row justify-center items-center mb-8">
-                    <Icon iconSource={require('@/assets/icons/travel.png')} label="explore"/>
-                    <Icon iconSource={require('@/assets/icons/review.png')} label="memories"/>
-                    <Icon iconSource={require('@/assets/icons/dates.png')} label="food-baby"/>
+                    <Icon iconSource={require('@/assets/icons/calendar.png')} label="schedule" title='Schedule'/>
+                    <Icon iconSource={require('@/assets/icons/save.png')} label="memories" title='Memories'/>
+                    <Icon iconSource={require('@/assets/icons/food.png')} label="food-baby" title='Food Baby'/>
                 </View>
 
                 {/* Date Section - Middle */}

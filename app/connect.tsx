@@ -42,9 +42,7 @@ export default function Connect() {
         setLoading(true);
         try {
             const existRoom = await checkRoom(user? user.id:'', roomName, password );
-            console.log("existRoom:", existRoom )
             if (existRoom) {
-                console.log("existRoom:", existRoom.room_name )
                 router.replace(`/room/${existRoom.room_name || roomName}`);
             } else {
                 router.replace('/');

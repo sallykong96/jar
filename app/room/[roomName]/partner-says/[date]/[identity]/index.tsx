@@ -1,4 +1,4 @@
-// app/room/[roomName]/partner-says/index.tsx
+// app/room/[roomName]/partner-says/travel-bucket.tsx
 import { View, Text, ImageBackground } from 'react-native';
 import {useLocalSearchParams, usePathname} from 'expo-router';
 import { useEffect, useState } from 'react';

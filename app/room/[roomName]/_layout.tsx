@@ -16,8 +16,6 @@ function RoomBanner() {
     const fetchData = useCallback(async () => {
         if (roomName) {
             const { creator, joiner } = await checkUser(roomName);
-            console.log('creator', creator);
-            console.log('joiner', joiner);
             setCreator(creator?.name || '');
             setJoiner(joiner?.name || '');
         }

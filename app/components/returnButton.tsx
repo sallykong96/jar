@@ -33,3 +33,4 @@ export function ReturnButton({roomName, label = "Back", className = ""}: ReturnB
         </TouchableOpacity>
     );
 }
+export default ReturnButton;

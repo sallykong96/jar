@@ -36,12 +36,7 @@ function RootLayoutNav() {
 
     useEffect(() => {
         if (!isLoaded) return;
-        const inHomePage = !segments[0]; // inHomePage = logged in but not entered room
-
-        console.log('segments:',segments);
-        console.log('isLoaded:',isLoaded);
-        console.log('isSignedIn:',isSignedIn);
-        console.log('inHomeGroup:',inHomePage);
+        const inHomePage = !segments[0];
 
         if (isSignedIn && inHomePage) {
             router.replace('/connect');
@@ -62,8 +57,8 @@ function RootLayoutNav() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="connect" />
-            <Stack.Screen name="[roomName]" />
-            <Stack.Screen name="[roomName]/add-partner" />
+            {/*<Stack.Screen name="[roomName]" />*/}
+            {/*<Stack.Screen name="[roomName]/add-partner" />*/}
         </Stack>
     );
 }

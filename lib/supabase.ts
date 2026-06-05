@@ -2,13 +2,9 @@ import 'react-native-url-polyfill/auto'
 import { createClient } from '@supabase/supabase-js'
 import 'expo-sqlite/localStorage/install'
 import {Alert} from "react-native";
-import {identity} from "react-native-svg/src/lib/Matrix2D";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!
-
-console.log('Supabase URL:', supabaseUrl)
-console.log('Anon Key exists:', !!supabaseKey)
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
@@ -20,13 +16,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 })
 
 export async function createUser(user: any) {
-    console.log('Creating user with data:', {
-        clerk_id: user.id,
-        email: user.email,
-        name: user.name
-    });
-
-    try {
+    console.log('user:', user)
         const { data, error } = await supabase
             .from('users')
             .upsert({
@@ -41,7 +31,7 @@ export async function createUser(user: any) {
             .single();
 
         if (error) {
-            console.error('Supabase error:', {
+            console.error('createUser() error:', {
                 code: error.code,
                 message: error.message,
                 details: error.details,
@@ -49,23 +39,10 @@ export async function createUser(user: any) {
             });
             throw error;
         }
-
-        console.log('Supabase success:', data);
         return data;
-    } catch (err) {
-        console.error('Caught error in createUser:', err);
-        throw err;
-    }
 }
 
 export async function createRoom(user: any, roomName: string, password: string) {
-    console.log('Creating room with data:', {
-        user: user,
-        roomName: roomName,
-        password: password,
-    });
-
-    try {
         const { data, error } = await supabase
             .from('connections')
             .upsert({
@@ -80,7 +57,7 @@ export async function createRoom(user: any, roomName: string, password: string) 
             .single();
 
         if (error) {
-            console.error('Supabase error:', {
+            console.error('createRoom() error:', {
                 code: error.code,
                 message: error.message,
                 details: error.details,
@@ -88,23 +65,10 @@ export async function createRoom(user: any, roomName: string, password: string) 
             });
             throw error;
         }
-
-        console.log('Supabase success:', data);
         return data;
-    } catch (err) {
-        console.error('Caught error in createUser:', err);
-        throw err;
-    }
 }
 
 export async function checkRoom(user: any, roomName: string, password: string) {
-    console.log('checkRoom:', {
-        user: user,
-        roomName: roomName,
-        password: password,
-    });
-
-    try {
         const { data, error } = await supabase
             .from('connections')
             .select('creator, joiner, room_name')
@@ -113,7 +77,7 @@ export async function checkRoom(user: any, roomName: string, password: string) {
             .maybeSingle();
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('checkRoom() error:', error);
             throw error;
         }
 
@@ -123,23 +87,15 @@ export async function checkRoom(user: any, roomName: string, password: string) {
         }
 
         if (data.creator === user || data.joiner === user) {
-            console.log('checkRoom success:', data);
             return data;
         } else {
             console.log('User does not have access to this room');
             Alert.alert("Please input correct room credentials");
             throw error;
         }
-    } catch (err) {
-        console.error('Caught error in checkRoom:', err);
-        throw err;
-    }
 }
 
 export async function checkDates(roomName: string) {
-    console.log('Checking dates for:', roomName);
-
-    try {
         const { data, error } = await supabase
             .from('dates')
             .select('met_date, start_dating')
@@ -147,20 +103,13 @@ export async function checkDates(roomName: string) {
             .maybeSingle();
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('checkDates() error:', error);
             throw error
         }
         return data;
-    } catch (err) {
-        console.error('Caught error in checkDates:', err);
-        throw err;
-    }
 }
 
 export async function checkUser(roomName: string) {
-    console.log('Checking user info:', roomName);
-
-    try {
         const { data, error } = await supabase
             .from('connections')
             .select('creator, joiner')
@@ -168,11 +117,10 @@ export async function checkUser(roomName: string) {
             .maybeSingle();
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('checkUser() error:', error);
             throw error;
         }
-        console.log('data.creator:', data?.creator);
-        // Declare variables outside the if blocks
+
         let creator = null;
         let joiner = null;
 
@@ -184,7 +132,7 @@ export async function checkUser(roomName: string) {
                 .maybeSingle();
 
             if (creatorError) {
-                console.error('Creator fetch error:', creatorError);
+                console.error('checkUser() Creator fetch error:', creatorError);
             } else {
                 creator = creatorData;
             }
@@ -198,24 +146,16 @@ export async function checkUser(roomName: string) {
                 .maybeSingle();
 
             if (joinerError) {
-                console.error('Joiner fetch error:', joinerError);
+                console.error('checkUser() Joiner fetch error:', joinerError);
             } else {
                 joiner = joinerData;
             }
         }
 
         return { creator, joiner };
-
-    } catch (err) {
-        console.error('Caught error in checkUser:', err);
-        throw err;
-    }
 }
 
 export async function checkExistingUser(email: string) {
-    console.log('checkExistingUser:', email);
-
-    try {
         const { data, error } = await supabase
             .from('users')
             .select('name, clerk_id')
@@ -223,24 +163,16 @@ export async function checkExistingUser(email: string) {
             .maybeSingle();
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('checkExistingUser() error:', error);
             throw error;
         }
 
         if (data) {
             return { data };
         }
-
-    } catch (err) {
-        console.error('Caught error in checkExistingUser:', err);
-        throw err;
-    }
 }
 
 export async function addPartner(userId: string, roomName: string) {
-    console.log('addPartner:', userId, roomName);
-
-    try {
         const { data, error } = await supabase
             .from('connections')
             .update({ joiner: userId })
@@ -248,23 +180,13 @@ export async function addPartner(userId: string, roomName: string) {
             .select();
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('addPartner() error:', error);
             throw error;
         }
-
-        console.log('Partner added successfully:', data);
         return data;
-
-    } catch (err) {
-        console.error('Caught error in addPartner:', err);
-        throw err;
-    }
 }
 
 export async function getReviewStatus(roomName: string) {
-    console.log('Checking status for:', roomName);
-
-    try {
         const { data, error } = await supabase
             .from('review')
             .select('id, date, creator_status, joiner_status')
@@ -276,24 +198,26 @@ export async function getReviewStatus(roomName: string) {
             throw error;
         }
 
-        const formattedData = data?.map(item => ({
+        return data?.map(item => ({
             ...item,
-            date: formatDateToDDMMYYYY(item.date)
+            date: formatDateToYYYYMMDD(item.date)
         })) || [];
-        console.log('Retrieved records:', formattedData);
-        return formattedData;
-    } catch (err) {
-        console.error('Caught error in getReviewStatus:', err);
-        throw err;
-    }
 }
 
-function formatDateToDDMMYYYY(date: string | Date): string {
+// function formatDateToDDMMYYYY(date: string | Date): string {
+//     const d = new Date(date);
+//     const day = String(d.getDate()).padStart(2, '0');
+//     const month = String(d.getMonth() + 1).padStart(2, '0');
+//     const year = d.getFullYear();
+//     return `${day}-${month}-${year}`;
+// }
+
+function formatDateToYYYYMMDD(date: string | Date): string {
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+    return `${year}-${month}-${day}`;
 }
 
 const convertToISODate = (dateStr: string) => {
@@ -302,7 +226,6 @@ const convertToISODate = (dateStr: string) => {
 };
 
 export async function getReviewByDate(roomName: string, date: string) {
-    try {
         const isoDate = convertToISODate(date);
         const { data, error } = await supabase
             .from('review')
@@ -310,23 +233,14 @@ export async function getReviewByDate(roomName: string, date: string) {
             .eq('room_name', roomName)
             .gte('created_at', `${isoDate}T00:00:00Z`)
             .lte('created_at', `${isoDate}T23:59:59Z`);
-
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('getReviewByDate() error:', error);
             throw error;
         }
-
-        console.log('data:', data);
-
         return data;
-    } catch (err) {
-        console.error('Caught error in getReviewByDate:', err);
-        throw err;
-    }
 }
 
 export const updateReviewByDate = async (roomName: string, date: string, content: string, identity: string) => {
-
     const isoDate = convertToISODate(date);
     const { data, error } = await supabase
         .from('review')
@@ -338,27 +252,21 @@ export const updateReviewByDate = async (roomName: string, date: string, content
         .gte('created_at', `${isoDate}T00:00:00Z`)
         .lte('created_at', `${isoDate}T23:59:59Z`)
         .select();
-
     if (error) {
-        console.error('Error updating review:', error);
+        console.error('updateReviewByDate() error:', error);
         throw error;
     }
-
     return data;
 };
 
-
 export async function checkIdentity(roomName: string, userId: string) {
-    console.log('checkIdentity:', userId);
-
-    try {
         const { data, error } = await supabase
             .from('connections')
             .select('creator, joiner')
             .eq('room_name', roomName)
 
         if (error) {
-            console.error('Supabase error:', error);
+            console.error('checkIdentity() error:', error);
             throw error;
         }
         let identity = '';
@@ -368,90 +276,22 @@ export async function checkIdentity(roomName: string, userId: string) {
             identity = 'joiner';
         }
         return identity;
-
-    } catch (err) {
-        console.error('Caught error in checkUser:', err);
-        throw err;
-    }
 }
 
-export async function insertReviewNewDate() {
-    try {
-        console.log("!!!!!!!!!!!!!!!!!!!");
-
-        const { data, error } = await supabase
-            .from('review')
-            .select('distinct(room_name)')
-            .order('room_name')
-
-        if (error) throw error;
-
-        const today = new Date();
-        const todayString = today.toISOString().split('T')[0];
-        const twoWeeksAgo = new Date();
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-        const newRows = [];
-
-        for (const room of data[0].distinct || []) {
-
-            const { data, error } = await supabase
-                .from('review')
-                .select('created_at')
-                .eq('room_name', room.room_name)
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-            if (error) {
-                console.error(`Error fetching latest date for room ${room}:`, error);
-                continue;
-            }
-
-            let needsNewRow = false;
-
-            if (!data || data.length === 0) {
-                needsNewRow = true;
-            } else {
-                const latestDate = new Date(data[0].created_at);
-                const daysDifference = Math.floor(
-                    (today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24)
-                );
-
-                if (daysDifference > 1) {
-                    needsNewRow = true;
-                    console.log(`Room ${room.room_name}: Last review was ${daysDifference} days ago, needs new row`);
-                }
-            }
-
-            if (needsNewRow) {
-                newRows.push({
-                    room_name: room.room_name,
-                    created_at: todayString,
-                    creator_status: 'pending',
-                    joiner_status: 'pending',
-                    creator_content: null,
-                    joiner_content: null
-                });
-            }
-        }
-
-        if (newRows.length > 0) {
-            const { data, error } = await supabase
-                .from('review')
-                .insert(newRows)
-                .select();
-
-            if (error) throw error;
-
-            console.log(`Inserted ${newRows.length} new review rows`);
-            return { success: true, inserted: newRows.length, data };
-        } else {
-            console.log('No new rows needed');
-            return { success: true, inserted: 0 };
-        }
-
-    } catch (error) {
-        console.error('Error in insertReviewNewDate:', error);
-        return { success: false, error };
+export async function getTravelList(roomName: string, group: string) {
+    const { data, error } = await supabase
+        .from('travel')
+        .select('id, date_start, date_end, destination')
+        .eq('room_name', roomName)
+        .eq('group', group)
+        .order('date_start', { ascending: false });
+    if (error) {
+        console.error('getTravelList() error:', error);
+        throw error;
     }
+    return data?.map(item => ({
+        ...item,
+        date_start: formatDateToYYYYMMDD(item.date_start),
+        date_end: formatDateToYYYYMMDD(item.date_end)
+    })) || [];
 }

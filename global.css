@@ -59,3 +59,15 @@
 .bg-red {
     background-color: #800000;
 }
+
+.bg-orange {
+    background-color: #E37100;
+    opacity: 70%;
+    border-radius: 1.5rem;
+}
+
+.bg-navy {
+    background-color: #091B30;
+    opacity: 70%;
+    border-radius: 1.5rem;
+}

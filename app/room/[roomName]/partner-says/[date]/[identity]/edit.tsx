@@ -1,4 +1,4 @@
-// app/room/[roomName]/partner-says/index.tsx
+// app/room/[roomName]/partner-says/travel-bucket.tsx
 import { View, Text, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, router, usePathname } from 'expo-router';
 import { ReturnButton } from "@/app/components/returnButton";
@@ -15,9 +15,6 @@ export default function PartnerSaysEdit() {
     const roomName = match ? decodeURIComponent(match[1]) : '';
     const date = match ? decodeURIComponent(match[2]) : '';
     const identity = match ? decodeURIComponent(match[3]) : '';
-
-    console.log('PartnerSaysDetail pathname:', pathname);
-    console.log('PartnerSaysDetail identity:', identity);
 
     useEffect(() => {
         const fetchData = async () => {

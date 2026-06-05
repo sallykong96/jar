@@ -52,11 +52,8 @@ export default function Index() {
             const completeSignUp = await signUp.attemptEmailAddressVerification({ code: verificationCode });
 
             if (completeSignUp.status === 'complete') {
-                // console.log("completeSignUp:", completeSignUp )
-                // console.log("signUp:", signUp )
-
                 const userData = {
-                    id: completeSignUp.id,
+                    id: completeSignUp.createdUserId,
                     email: completeSignUp.emailAddress,
                     name: name,
                 };

@@ -14,13 +14,11 @@ export default function PartnerSays() {
     const { user } = useUser();
     const userId = user?.id;
 
-    console.log('PartnerSays roomName:', roomName);
     const [tableData, setTableData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         if (!roomName) {
-            // console.error('No roomName provided');
             setLoading(false);
             return;
         }
@@ -52,7 +50,6 @@ export default function PartnerSays() {
 
     useFocusEffect(
         useCallback(() => {
-            console.log('Screen focused, refreshing data...');
             fetchData();
         }, [])
     );
@@ -62,7 +59,6 @@ export default function PartnerSays() {
         const fetchUserIdentity = async () => {
             if (userId) {
                 const identity = await checkIdentity(roomName, userId);
-                console.log('identity:', identity);
                 setUserIdentity(identity);
             }
         };
