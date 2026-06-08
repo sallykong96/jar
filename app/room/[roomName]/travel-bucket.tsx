@@ -28,10 +28,8 @@ export default function TravelBucket() {
                 date_end: dateEnd,
             });
             await fetchData();
-            Alert.alert('Success', 'Destination added successfully!');
         } catch (error) {
             console.error('Error adding destination:', error);
-            Alert.alert('Error', 'Failed to add destination');
         }
     };
 

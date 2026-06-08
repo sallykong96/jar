@@ -1,5 +1,5 @@
-import { Modal, View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { useState, useCallback, memo, useEffect, useRef as useRefReact } from 'react';
+import { Modal, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState, useCallback, memo } from 'react';
 
 interface AddDestinationModalProps {
     visible: boolean;
@@ -14,140 +14,280 @@ const getToday = () => {
     return {
         year: today.getFullYear(),
         month: today.getMonth() + 1,
-        day: today.getDate()
+        day: today.getDate(),
+        dateString: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     };
 };
 
-const DatePickerModal = memo(({
-                                  onConfirm,
-                                  onCancel,
-                                  initialYear,
-                                  initialMonth,
-                                  initialDay
-                              }: {
-    onConfirm: (year: number, month: number, day: number) => void;
+// Format date to YYYY-MM-DD
+const formatDate = (year: number, month: number, day: number) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
+// Parse date string to Date object
+const parseDate = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+};
+
+// Check if a date is between start and end dates
+const isBetween = (date: Date, start: Date, end: Date) => {
+    return date >= start && date <= end;
+};
+
+// Calendar Component for Range Selection
+const CalendarRangeModal = memo(({
+                                     onConfirm,
+                                     onCancel,
+                                     initialStartDate,
+                                     initialEndDate
+                                 }: {
+    onConfirm: (startDate: string, endDate: string) => void;
     onCancel: () => void;
-    initialYear: number;
-    initialMonth: number;
-    initialDay: number;
+    initialStartDate: string;
+    initialEndDate: string;
 }) => {
-    const [tempYear, setTempYear] = useState(initialYear || getToday().year);
-    const [tempMonth, setTempMonth] = useState(initialMonth || getToday().month);
-    const [tempDay, setTempDay] = useState(initialDay || getToday().day);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [startDate, setStartDate] = useState(initialStartDate || '');
+    const [endDate, setEndDate] = useState(initialEndDate || '');
+    const [selecting, setSelecting] = useState<'start' | 'end'>('start');
 
-    // Refs for scroll views
-    const yearScrollRef = useRefReact<ScrollView>(null);
-    const monthScrollRef = useRefReact<ScrollView>(null);
-    const dayScrollRef = useRefReact<ScrollView>(null);
-
-    const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - 5 + i);
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    const days = Array.from({ length: 31 }, (_, i) => i + 1);
-
-    // Calculate the index of the selected item
-    const getItemHeight = 40; // Approximate height of each item
-    const getScrollPosition = (currentValue: number, list: number[]) => {
-        const index = list.findIndex(item => item === currentValue);
-        return index * getItemHeight;
+    const getDaysInMonth = (year: number, month: number) => {
+        return new Date(year, month + 1, 0).getDate();
     };
 
-    // Auto-scroll to selected values when modal opens
-    useEffect(() => {
-        // Small delay to ensure ScrollView is rendered
-        const timer = setTimeout(() => {
-            const yearIndex = years.findIndex(y => y === tempYear);
-            const monthIndex = months.findIndex(m => m === tempMonth);
-            const dayIndex = days.findIndex(d => d === tempDay);
+    const getFirstDayOfMonth = (year: number, month: number) => {
+        return new Date(year, month, 1).getDay();
+    };
 
-            if (yearScrollRef.current && yearIndex !== -1) {
-                yearScrollRef.current.scrollTo({ y: yearIndex * getItemHeight, animated: true });
-            }
-            if (monthScrollRef.current && monthIndex !== -1) {
-                monthScrollRef.current.scrollTo({ y: monthIndex * getItemHeight, animated: true });
-            }
-            if (dayScrollRef.current && dayIndex !== -1) {
-                dayScrollRef.current.scrollTo({ y: dayIndex * getItemHeight, animated: true });
-            }
-        }, 100);
+    const handleDateSelect = (year: number, month: number, day: number) => {
+        const selectedDate = formatDate(year, month, day);
 
-        return () => clearTimeout(timer);
-    }, []);
+        if (selecting === 'start') {
+            setStartDate(selectedDate);
+            setEndDate('');
+            setSelecting('end');
+        } else {
+            if (parseDate(selectedDate) >= parseDate(startDate)) {
+                setEndDate(selectedDate);
+            } else {
+                setStartDate(selectedDate);
+                setEndDate(startDate);
+            }
+            setSelecting('start');
+        }
+    };
+
+    const isInRange = (date: Date) => {
+        if (!startDate || !endDate) return false;
+        const start = parseDate(startDate);
+        const end = parseDate(endDate);
+        return date > start && date < end;
+    };
+
+    const isStartDate = (year: number, month: number, day: number) => {
+        if (!startDate) return false;
+        return formatDate(year, month, day) === startDate;
+    };
+
+    const isEndDate = (year: number, month: number, day: number) => {
+        if (!endDate) return false;
+        return formatDate(year, month, day) === endDate;
+    };
+
+    const renderCalendar = () => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+
+        const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+        // Header row with unique keys
+        const headerRow = (
+            <View key="weekday-header-row" className="flex-row justify-center mb-2">
+                {weekDays.map((day, index) => (
+                    <View key={`header-${day}-${index}`} style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text className="text-xs text-gray-500 font-semibold">{day}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+
+        // Build all calendar cells
+        const allCells = [];
+
+        // Add empty cells for days before month starts
+        for (let i = 0; i < firstDay; i++) {
+            allCells.push({
+                id: `empty-start-${year}-${month}-${i}`,
+                type: 'empty',
+                day: null
+            });
+        }
+
+        // Add actual days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(year, month, day);
+            const dateString = formatDate(year, month, day);
+            const inRange = isInRange(currentDate);
+            const isStart = isStartDate(year, month, day);
+            const isEnd = isEndDate(year, month, day);
+            const isToday = dateString === getToday().dateString;
+
+            allCells.push({
+                id: `day-${year}-${month}-${day}`,
+                type: 'day',
+                day: day,
+                inRange: inRange,
+                isStart: isStart,
+                isEnd: isEnd,
+                isToday: isToday
+            });
+        }
+
+        // Fill remaining cells to complete 42 (6 rows x 7 columns)
+        const totalNeeded = 42;
+        const remaining = totalNeeded - allCells.length;
+        for (let i = 0; i < remaining; i++) {
+            allCells.push({
+                id: `empty-end-${year}-${month}-${i}`,
+                type: 'empty',
+                day: null
+            });
+        }
+
+        // Split into rows of 7
+        const rows = [];
+        for (let i = 0; i < allCells.length; i += 7) {
+            const rowCells = allCells.slice(i, i + 7);
+            const rowIndex = i / 7;
+
+            rows.push(
+                <View key={`calendar-row-${year}-${month}-${rowIndex}`} className="flex-row justify-center">
+                    {rowCells.map((cell, colIndex) => {
+                        if (cell.type === 'empty') {
+                            return <View key={cell.id} style={{ width: 40, height: 40 }} />;
+                        }
+                        const dayValue = cell.day as number;
+                        let rangeStyle = '';
+                        if (cell.inRange && !cell.isStart && !cell.isEnd) {
+                            rangeStyle = 'bg-orange-200';
+                        }
+
+                        let borderStyle = '';
+                        if (cell.isStart && cell.isEnd) {
+                            borderStyle = 'bg-navy rounded-full';
+                        } else if (cell.isStart) {
+                            borderStyle = 'bg-navy rounded-l-full';
+                        } else if (cell.isEnd) {
+                            borderStyle = 'bg-navy rounded-r-full';
+                        }
+
+                        return (
+                            <TouchableOpacity
+                                key={cell.id}
+                                onPress={() => handleDateSelect(year, month, dayValue )}
+                                style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}
+                                className={rangeStyle}
+                            >
+                                <View className={`w-10 h-10 justify-center items-center ${borderStyle}`}>
+                                    <Text className={`text-center ${
+                                        cell.isStart || cell.isEnd ? 'text-white font-bold' :
+                                            cell.isToday ? 'text-orange-500 font-bold' : 'text-gray-700'
+                                    }`}>
+                                        {cell.day}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            );
+        }
+
+        return (
+            <View>
+                {headerRow}
+                {rows}
+            </View>
+        );
+    };
+
+    const changeMonth = (increment: number) => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + increment, 1));
+    };
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const handleConfirm = () => {
+        if (!startDate) {
+            Alert.alert('Error', 'Please select a start date');
+            return;
+        }
+        onConfirm(startDate, endDate);
+    };
+
+    const clearSelection = () => {
+        setStartDate('');
+        setEndDate('');
+        setSelecting('start');
+    };
 
     return (
         <Modal transparent={true} animationType="slide" visible={true}>
             <View className="flex-1 justify-center items-center bg-black/50">
-                <View className="bg-white rounded-lg p-6 w-11/12">
-                    <Text className="text-xl font-bold mb-4 text-center">Select Date</Text>
+                <View className="bg-white rounded-lg p-4 w-11/12">
+                    <Text className="text-xl font-bold mb-2 text-center">Select Date Range</Text>
 
-                    <View className="flex-row gap-3 mb-4">
-                        {/* Year Picker */}
-                        <View className="flex-1">
-                            <Text className="text-center text-gray-500 mb-2">Year</Text>
-                            <ScrollView
-                                ref={yearScrollRef}
-                                className="h-40"
-                                showsVerticalScrollIndicator={false}
-                            >
-                                {years.map(y => (
-                                    <TouchableOpacity key={y} onPress={() => setTempYear(y)}>
-                                        <View className={`py-3 ${y === tempYear ? 'bg-orange-100 rounded-lg' : ''}`}>
-                                            <Text className={`text-center ${y === tempYear ? 'text-orange-500 font-bold text-lg' : 'text-gray-600'}`}>
-                                                {y}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                    {/* Selection Status */}
+                    <View className="flex-row justify-between items-center mb-4 px-2">
+                        <View className="flex-1 items-center">
+                            <Text className="text-xs text-gray-500">Start Date</Text>
+                            <Text className={`font-semibold ${startDate ? 'text-navy' : 'text-gray-400'}`}>
+                                {startDate || 'Not selected'}
+                            </Text>
                         </View>
-
-                        {/* Month Picker */}
-                        <View className="flex-1">
-                            <Text className="text-center text-gray-500 mb-2">Month</Text>
-                            <ScrollView
-                                ref={monthScrollRef}
-                                className="h-40"
-                                showsVerticalScrollIndicator={false}
-                            >
-                                {months.map(m => (
-                                    <TouchableOpacity key={m} onPress={() => setTempMonth(m)}>
-                                        <View className={`py-3 ${m === tempMonth ? 'bg-orange-100 rounded-lg' : ''}`}>
-                                            <Text className={`text-center ${m === tempMonth ? 'text-orange-500 font-bold text-lg' : 'text-gray-600'}`}>
-                                                {m}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                        <Text className="text-xl text-gray-400">→</Text>
+                        <View className="flex-1 items-center">
+                            <Text className="text-xs text-gray-500">End Date</Text>
+                            <Text className={`font-semibold ${endDate ? 'text-navy' : 'text-gray-400'}`}>
+                                {endDate || 'Not selected'}
+                            </Text>
                         </View>
-
-                        {/* Day Picker */}
-                        <View className="flex-1">
-                            <Text className="text-center text-gray-500 mb-2">Day</Text>
-                            <ScrollView
-                                ref={dayScrollRef}
-                                className="h-40"
-                                showsVerticalScrollIndicator={false}
-                            >
-                                {days.map(d => (
-                                    <TouchableOpacity key={d} onPress={() => setTempDay(d)}>
-                                        <View className={`py-3 ${d === tempDay ? 'bg-orange-100 rounded-lg' : ''}`}>
-                                            <Text className={`text-center ${d === tempDay ? 'text-orange-500 font-bold text-lg' : 'text-gray-600'}`}>
-                                                {d}
-                                            </Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
+                        {(startDate || endDate) && (
+                            <TouchableOpacity onPress={clearSelection} className="ml-2">
+                                <Text className="text-red-500 text-xs">Clear</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
-                    <View className="flex-row gap-3 mt-4">
+                    {/* Month Navigation */}
+                    <View className="flex-row justify-between items-center mb-4 px-4">
+                        <TouchableOpacity onPress={() => changeMonth(-1)} className="p-2">
+                            <Text className="text-2xl text-gray-600">←</Text>
+                        </TouchableOpacity>
+                        <Text className="text-lg font-semibold">
+                            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                        </Text>
+                        <TouchableOpacity onPress={() => changeMonth(1)} className="p-2">
+                            <Text className="text-2xl text-gray-600">→</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Calendar Grid */}
+                    <View className="items-center">
+                        {renderCalendar()}
+                    </View>
+
+                    <View className="flex-row gap-3 mt-6">
                         <TouchableOpacity className="flex-1 bg-gray-300 py-3 rounded-lg" onPress={onCancel}>
                             <Text className="text-center font-semibold">Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             className="flex-1 bg-navy py-3 rounded-lg"
-                            onPress={() => onConfirm(tempYear, tempMonth, tempDay)}
+                            onPress={handleConfirm}
                         >
                             <Text className="text-white text-center font-semibold">Confirm</Text>
                         </TouchableOpacity>
@@ -158,7 +298,7 @@ const DatePickerModal = memo(({
     );
 });
 
-DatePickerModal.displayName = 'DatePickerModal';
+CalendarRangeModal.displayName = 'CalendarRangeModal';
 
 export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddDestinationModalProps) {
     const [destination, setDestination] = useState('');
@@ -166,96 +306,69 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
     const [dateEnd, setDateEnd] = useState('');
     const [group, setGroup] = useState<'go' | 'been'>('go');
 
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
-    // Set default values to today's date
-    const today = getToday();
-    const [startPickerInitial, setStartPickerInitial] = useState({
-        year: today.year,
-        month: today.month,
-        day: today.day
-    });
-    const [endPickerInitial, setEndPickerInitial] = useState({
-        year: today.year,
-        month: today.month,
-        day: today.day
-    });
-
-    const formatDate = (year: number, month: number, day: number) => {
-        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    };
-
-    const handleStartDateSelect = useCallback((year: number, month: number, day: number) => {
-        const date = formatDate(year, month, day);
-        setDateStart(date);
-        setShowStartPicker(false);
+    const handleDateConfirm = useCallback((startDate: string, endDate: string) => {
+        setDateStart(startDate);
+        setDateEnd(endDate);
+        setShowDatePicker(false);
     }, []);
-
-    const handleEndDateSelect = useCallback((year: number, month: number, day: number) => {
-        const date = formatDate(year, month, day);
-        setDateEnd(date);
-        setShowEndPicker(false);
-    }, []);
-
-    const openStartPicker = useCallback(() => {
-        let year, month, day;
-
-        if (dateStart) {
-            const currentDate = dateStart.split('-');
-            year = parseInt(currentDate[0]);
-            month = parseInt(currentDate[1]);
-            day = parseInt(currentDate[2]);
-        } else {
-            // Use today's date if no date selected yet
-            const todayDate = getToday();
-            year = todayDate.year;
-            month = todayDate.month;
-            day = todayDate.day;
-        }
-
-        setStartPickerInitial({ year, month, day });
-        setShowStartPicker(true);
-    }, [dateStart]);
-
-    const openEndPicker = useCallback(() => {
-        let year, month, day;
-
-        if (dateEnd) {
-            const currentDate = dateEnd.split('-');
-            year = parseInt(currentDate[0]);
-            month = parseInt(currentDate[1]);
-            day = parseInt(currentDate[2]);
-        } else {
-            // Use today's date if no date selected yet
-            const todayDate = getToday();
-            year = todayDate.year;
-            month = todayDate.month;
-            day = todayDate.day;
-        }
-
-        setEndPickerInitial({ year, month, day });
-        setShowEndPicker(true);
-    }, [dateEnd]);
 
     const handleSave = useCallback(() => {
+        // Validate destination
         if (!destination.trim()) {
-            Alert.alert('Error', 'Please enter a destination');
+            Alert.alert('Missing Information', 'Please enter a destination');
             return;
         }
+
+        // Validate start date
         if (!dateStart) {
-            Alert.alert('Error', 'Please select a start date');
+            Alert.alert('Missing Information', 'Please select a start date');
+            return;
+        }
+
+        // Validate end date (optional but show warning if not provided)
+        if (!dateEnd) {
+            Alert.alert('Missing Information', 'Please select an end date');
+            return;
+        }
+
+        // Validate that end date is after start date
+        if (dateStart && dateEnd) {
+            const start = parseDate(dateStart);
+            const end = parseDate(dateEnd);
+            if (end < start) {
+                Alert.alert('Invalid Date Range', 'End date must be after start date');
+                return;
+            }
+        }
+
+        // Validate date format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateStart && !dateRegex.test(dateStart)) {
+            Alert.alert('Invalid Date', 'Start date format is invalid');
+            return;
+        }
+        if (dateEnd && !dateRegex.test(dateEnd)) {
+            Alert.alert('Invalid Date', 'End date format is invalid');
             return;
         }
 
         onSave(destination, dateStart, dateEnd, group);
 
+        // Reset form
         setDestination('');
         setDateStart('');
         setDateEnd('');
         setGroup('go');
         onClose();
     }, [destination, dateStart, dateEnd, group, onSave, onClose]);
+
+    const formatDisplayDate = (date: string) => {
+        if (!date) return '';
+        const [year, month, day] = date.split('-');
+        return `${month}/${day}/${year}`;
+    };
 
     return (
         <>
@@ -270,10 +383,9 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                     <View className="bg-white rounded-lg p-6 w-11/12 max-w-md">
                         <Text className="text-2xl font-bold mb-4 text-center">Add Destination</Text>
 
-                        {/* Trip Type - Full width */}
+                        {/* Trip Type */}
                         <View className="mb-3">
                             <View className="flex-row gap-3">
-                                <Text className="text-gray-700 w-24 mb-2 font-semibold">Trip Type:</Text>
                                 <TouchableOpacity
                                     className={`flex-1 py-2 rounded-lg ${group === 'go' ? 'bg-navy' : 'bg-gray-300'}`}
                                     onPress={() => setGroup('go')}
@@ -293,9 +405,8 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                             </View>
                         </View>
 
-                        {/* Destination - Label on left, input takes rest */}
+                        {/* Destination */}
                         <View className="flex-row items-center mb-3">
-                            <Text className="text-gray-700 font-semibold w-24">Destination:</Text>
                             <TextInput
                                 className="flex-1 border border-gray-300 rounded-lg p-3"
                                 placeholder="Destination"
@@ -305,30 +416,27 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                             />
                         </View>
 
-                        {/* Start Date - Label on left, button takes rest */}
-                        <View className="flex-row items-center mb-3">
-                            <Text className="text-gray-700 font-semibold w-24">Start Date:</Text>
+                        {/* Date Range Selector */}
+                        <View className="mb-4">
                             <TouchableOpacity
-                                onPress={openStartPicker}
-                                className="flex-1 border border-gray-300 rounded-lg p-3"
+                                onPress={() => setShowDatePicker(true)}
+                                className="border border-gray-300 rounded-lg p-3"
                             >
                                 <Text className={dateStart ? "text-black" : "text-gray-400"}>
-                                    {dateStart ? `${dateStart}` : "Select"}
+                                    {dateStart ? `${formatDisplayDate(dateStart)} - ${dateEnd ? formatDisplayDate(dateEnd) : '...'}` : "Select Date Range"}
                                 </Text>
                             </TouchableOpacity>
-                        </View>
-
-                        {/* End Date - Label on left, button takes rest */}
-                        <View className="flex-row items-center mb-4">
-                            <Text className="text-gray-700 font-semibold w-24">End Date:</Text>
-                            <TouchableOpacity
-                                onPress={openEndPicker}
-                                className="flex-1 border border-gray-300 rounded-lg p-3"
-                            >
-                                <Text className={dateEnd ? "text-black" : "text-gray-400"}>
-                                    {dateEnd ? `${dateEnd}` : "Select (Optional)"}
-                                </Text>
-                            </TouchableOpacity>
+                            {(dateStart || dateEnd) && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setDateStart('');
+                                        setDateEnd('');
+                                    }}
+                                    className="mt-1 self-end"
+                                >
+                                    <Text className="text-red-500 text-xs">Clear</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         {/* Buttons */}
@@ -350,23 +458,13 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                 </View>
             </Modal>
 
-            {showStartPicker && (
-                <DatePickerModal
-                    onConfirm={handleStartDateSelect}
-                    onCancel={() => setShowStartPicker(false)}
-                    initialYear={startPickerInitial.year}
-                    initialMonth={startPickerInitial.month}
-                    initialDay={startPickerInitial.day}
-                />
-            )}
-
-            {showEndPicker && (
-                <DatePickerModal
-                    onConfirm={handleEndDateSelect}
-                    onCancel={() => setShowEndPicker(false)}
-                    initialYear={endPickerInitial.year}
-                    initialMonth={endPickerInitial.month}
-                    initialDay={endPickerInitial.day}
+            {/* Date Range Calendar Picker */}
+            {showDatePicker && (
+                <CalendarRangeModal
+                    onConfirm={handleDateConfirm}
+                    onCancel={() => setShowDatePicker(false)}
+                    initialStartDate={dateStart}
+                    initialEndDate={dateEnd}
                 />
             )}
         </>
