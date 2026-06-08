@@ -115,7 +115,7 @@ export default function PartnerSays() {
                     {tableData.length > 0 ? (
                         tableData.map((item, index) => (
                             <View key={item.no || index} className="flex-row bg-white/10 items-center">
-                                <Text className="flex-1 py-3 text-center text-white text-[16px]">
+                                <Text className="flex-1 py-2 text-center text-white text-[16px]">
                                     {item.no}
                                 </Text>
                                 <Text className="flex-1 text-center text-white text-[16px]">

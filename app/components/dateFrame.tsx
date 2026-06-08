@@ -10,9 +10,9 @@ export default function DateFrame({ date, color = '#E37100' }: DateFrameProps) {
     return (
         <View
             style={{ backgroundColor: color }}
-            className="px-3 rounded-2xl"
+            className="px-3 rounded-2xl opacity-80"
         >
-            <Text className="font-semibold text-white text-[15px]">
+            <Text className="font-semibold text-white text-[14px]">
                 {date}
             </Text>
         </View>

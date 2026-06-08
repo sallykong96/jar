@@ -2,18 +2,38 @@
 import {View, Text, ImageBackground, TouchableOpacity, Alert} from 'react-native';
 import { ReturnButton } from "@/app/components/returnButton";
 import {useLocalSearchParams, usePathname} from "expo-router";
-import {deleteTravelItem, getTravelList} from "@/lib/supabase";
+import {addDestination, deleteTravelItem, getTravelList} from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import DateFrame from "@/app/components/dateFrame";
 import SwipeableListItem from "@/app/components/swipeableListItem";
+import SquareButton from "@/app/components/squareButton";
+import { AddDestinationModal } from "@/app/components/addDestinationModal"; // Import the modal
 
 export default function TravelBucket() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
-
     const [toGoList, setToGoList] = useState<any[]>([]);
     const [beenToList, setBeenToList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleAddDestination = async (destination: string, dateStart: string, dateEnd: string, group: 'go' | 'been') => {
+        try {
+            console.log('newItem:', destination, dateStart, dateEnd, group);
+            const newItem = await addDestination({
+                room: roomName || '',
+                group: group,
+                destination: destination,
+                date_start: dateStart,
+                date_end: dateEnd,
+            });
+            await fetchData();
+            Alert.alert('Success', 'Destination added successfully!');
+        } catch (error) {
+            console.error('Error adding destination:', error);
+            Alert.alert('Error', 'Failed to add destination');
+        }
+    };
 
     const fetchData = async () => {
         if (!roomName) {
@@ -81,64 +101,77 @@ export default function TravelBucket() {
     return (
         <ImageBackground source={require('@/assets/images/travel-bucket.png')} className="flex-1 w-full h-full" resizeMode="cover">
             <View className="flex-1 justify-start p-4 mt-25">
-                <Text className="text-white font-artistic mb-2 text-[60px] text-center">
+
+                <Text className="text-white mb-2 font-artistic text-[60px] text-center">
                     Travel Bucket
                 </Text>
 
                 <View className="flex-column gap-3">
+                    <View className="bg-white/20 rounded-lg overflow-hidden">
+                        <View className="flex-row bg-red">
+                            <Text className="flex-1 py-2 text-center text-white text-[16px]">Going To</Text>
+                            <Text className="w-40 py-2 text-center text-white text-[16px]">Date</Text>
+                        </View>
 
-                <View className="bg-white/20 rounded-lg overflow-hidden">
-                    <View className="flex-row bg-red">
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Going To</Text>
-                        <Text className="w-40 py-2 text-center text-white text-[16px]">Date</Text>
+                        {toGoList.length > 0 ? (
+                            toGoList.map((item, index) => (
+                                <SwipeableListItem
+                                    key={item.id || index}
+                                    destination={item.destination}
+                                    dateStart={item.date_start}
+                                    dateEnd={item.date_end}
+                                    onDelete={() => handleDelete(item.id, 'go')}
+                                    color="#E37100"
+                                />
+                            ))
+                        ) : (
+                            <View className="py-8">
+                                <Text className="text-white text-center opacity-80">
+                                    No places to go yet ✈️
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
-                    {toGoList.length > 0 ? (
-                        toGoList.map((item, index) => (
-                            <SwipeableListItem
-                                key={item.id || index}
-                                destination={item.destination}
-                                dateStart={item.date_start}
-                                dateEnd={item.date_end}
-                                onDelete={() => handleDelete(item.id, 'go')}
-                                color="#E37100"
-                            />
-                        ))
-                    ) : (
-                        <View className="py-8">
-                            <Text className="text-white text-center opacity-80">
-                                No places to go yet ✈️
-                            </Text>
+                    <View className="bg-white/20 rounded-lg overflow-hidden">
+                        <View className="flex-row bg-red">
+                            <Text className="flex-1 py-2 text-center text-white text-[16px]">Been To</Text>
+                            <Text className="w-40 py-2 text-center text-white text-[16px]">Date</Text>
                         </View>
-                    )}
-                </View>
-                <View className="bg-white/20 rounded-lg overflow-hidden">
-                    <View className="flex-row bg-red">
-                        <Text className="flex-1 py-2 text-center text-white text-[16px]">Been To</Text>
-                        <Text className="w-40 py-2 text-center text-white text-[16px]">Date</Text>
-                    </View>
 
-                    {beenToList.length > 0 ? (
-                        beenToList.map((item, index) => (
-                            <SwipeableListItem
-                                key={item.id || index}
-                                destination={item.destination}
-                                dateStart={item.date_start}
-                                dateEnd={item.date_end}
-                                onDelete={() => handleDelete(item.id, 'go')}
-                                color="#E37100"
-                            />
-                        ))
-                    ) : (
-                        <View className="py-8">
-                            <Text className="text-white text-center opacity-80">
-                                No visited places yet ✈️
-                            </Text>
-                        </View>
-                    )}
+                        {beenToList.length > 0 ? (
+                            beenToList.map((item, index) => (
+                                <SwipeableListItem
+                                    key={item.id || index}
+                                    destination={item.destination}
+                                    dateStart={item.date_start}
+                                    dateEnd={item.date_end}
+                                    onDelete={() => handleDelete(item.id, 'been')}
+                                    color="#E37100"
+                                />
+                            ))
+                        ) : (
+                            <View className="py-8">
+                                <Text className="text-white text-center opacity-80">
+                                    No visited places yet ✈️
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
+
+                <View className="flex-row justify-end mb-4 mt-2">
+                    <SquareButton iconSource={require('@/assets/icons/plus.png')} onPress={() => setModalVisible(true)} />
                 </View>
             </View>
+
+            <AddDestinationModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onSave={handleAddDestination}
+                roomName={roomName || ''}
+            />
+
             <ReturnButton />
         </ImageBackground>
     );

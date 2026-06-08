@@ -1,7 +1,7 @@
 import {Alert, ImageBackground, Text, TextInput, TouchableOpacity, View} from "react-native";
 import "@/global.css"
-import {useState} from "react";
-import {createRoom, checkRoom} from "@/lib/supabase";
+import {useState, useEffect} from "react";
+import {createRoom, checkRoom, getUserCurrentRoom, saveUserCurrentRoom} from "@/lib/supabase";
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { router } from 'expo-router';
 
@@ -13,11 +13,29 @@ export default function Connect() {
     const [mode, setMode] = useState<'enter' | 'create'>('enter');
     const { user } = useUser();
     const { signOut } = useAuth();
+    const [existRoom, setExistRoom] = useState('');
+
+    useEffect(() => {
+        const checkExistingRoom = async () => {
+            if (!user) return;
+
+            try {
+                const currentRoom = await getUserCurrentRoom(user.id);
+
+                if (currentRoom && currentRoom[0].current_room) {
+                    router.replace(`/room/${currentRoom[0].current_room}`);
+                }
+            } catch (err) {
+                console.log("Error checking current room:", err);
+            }
+        };
+
+        checkExistingRoom();
+    }, [user]);
 
     const handleSignOut = async () => {
         try {
             await signOut();
-            // Router will automatically redirect based on your root layout
             router.replace('/');
         } catch (err: any) {
             console.error('Sign out error:', err);
@@ -41,15 +59,20 @@ export default function Connect() {
     const onEnter = async () => {
         setLoading(true);
         try {
-            const existRoom = await checkRoom(user? user.id:'', roomName, password );
+            const existRoom = await checkRoom(user?.id || '', roomName, password);
+
             if (existRoom) {
+                await saveUserCurrentRoom(roomName, user?.id || '');
                 router.replace(`/room/${existRoom.room_name || roomName}`);
             } else {
-                router.replace('/');
+                Alert.alert('Error', 'Room not found or incorrect password');
             }
         } catch (err: any) {
-            if (roomName==='' || password===''){
+            console.error('onEnter error:', err);
+            if (roomName === '' || password === '') {
                 Alert.alert("Please input room credentials");
+            } else {
+                Alert.alert("Error", err.message || "Failed to enter room");
             }
         } finally {
             setLoading(false);

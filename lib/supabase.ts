@@ -308,3 +308,73 @@ export async function deleteTravelItem(itemId: string) {
     }
     return true;
 }
+
+export async function getUserCurrentRoom(userId: string) {
+    const { data, error } = await supabase
+        .from('users')
+        .select('current_room')
+        .eq('clerk_id', userId)
+
+    if (error) {
+        console.error('getUserCurrentRoom() error:', error);
+        throw error;
+    }
+    return data;
+}
+
+export async function deleteUserCurrentRoom(userId: string) {
+    const { data, error } = await supabase
+        .from('users')
+        .update({ current_room: null })
+        .eq('clerk_id', userId)
+        .select();
+
+    if (error) {
+        console.error('deleteUserCurrentRoom() error:', error);
+        throw error;
+    }
+    return data;
+}
+
+export async function saveUserCurrentRoom(room: string, userId: string) {
+    const { data, error } = await supabase
+        .from('users')
+        .update({ current_room: room })
+        .eq('clerk_id', userId)
+        .select();
+
+    if (error) {
+        console.error('saveUserCurrentRoom() error:', error);
+        throw error;
+    }
+    return data;
+}
+
+interface AddDestinationProps {
+    room: string;
+    group: string;
+    destination: string;
+    date_start: string;
+    date_end: string;
+}
+
+export async function addDestination(props: AddDestinationProps) {
+    const { room, group, destination, date_start, date_end } = props;
+
+    const { data, error } = await supabase
+        .from('travel')
+        .insert([{
+            room_name: room,
+            group: group,
+            destination: destination,
+            date_start: date_start,
+            date_end: date_end
+        }])
+        .select();
+
+    if (error) {
+        console.error('addDestination() error:', error);
+        throw error;
+    }
+    return data;
+}

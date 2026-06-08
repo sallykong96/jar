@@ -43,14 +43,14 @@ export default function SwipeableListItem({
             overshootRight={false}
             rightThreshold={40}
         >
-            <View className="flex-row bg-white/10 items-center py-3">
+            <View className="flex-row bg-white/10 items-center py-1">
                 <Text className="flex-1 text-center text-white text-[16px]">
                     {destination}
                 </Text>
                 <View className="w-40 items-center">
                         <View className="gap-0.5">
                             <DateFrame date={dateStart} />
-                            <DateFrame date={dateEnd} color="#082A5C" />
+                            <DateFrame date={dateEnd} color="#091B30" />
                         </View>
                 </View>
             </View>

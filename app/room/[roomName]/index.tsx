@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import {checkDates} from '@/lib/supabase';
+import {checkDates, deleteUserCurrentRoom} from '@/lib/supabase';
+import { useUser } from '@clerk/clerk-expo';
 import Icon from '../../components/Icon';
 
 interface Dates {
@@ -16,9 +17,23 @@ export default function RoomScreen() {
     const [daysSinceStarted, setDaysSinceStarted] = useState(0)
     const [loading, setLoading] = useState(true);
 
+    const { user } = useUser();
+    const userId = user?.id;
+    const handleLeaveRoom = async () => {
+        if (!userId) {
+            Alert.alert('Error', 'User not found');
+            return;
+        }
 
-    const handleLeaveRoom = () => {
-        router.replace('/connect');
+        try {
+            await deleteUserCurrentRoom(userId);
+
+            // Navigate back to connect screen
+            router.replace('/connect');
+        } catch (error) {
+            console.error('Error leaving room:', error);
+            Alert.alert('Error', 'Failed to leave room');
+        }
     };
 
     useEffect(() => {
