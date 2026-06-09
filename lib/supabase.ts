@@ -43,29 +43,61 @@ export async function createUser(user: any) {
 }
 
 export async function createRoom(user: any, roomName: string, password: string) {
-        const { data, error } = await supabase
-            .from('connections')
-            .upsert({
-                room_name: roomName,
-                creator: user,
-                password: password,
-            }, {
-                onConflict: 'room_name',
-                ignoreDuplicates: false,
-            })
-            .select()
-            .single();
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
-        if (error) {
-            console.error('createRoom() error:', {
-                code: error.code,
-                message: error.message,
-                details: error.details,
-                hint: error.hint
-            });
-            throw error;
-        }
-        return data;
+    const { data: connectionData, error: connectionError } = await supabase
+        .from('connections')
+        .upsert({
+            room_name: roomName,
+            creator: user,
+            password: password,
+        }, {
+            onConflict: 'room_name',
+            ignoreDuplicates: false,
+        })
+        .select()
+        .single();
+
+    if (connectionError) {
+        console.error('createRoom() connection error:', {
+            code: connectionError.code,
+            message: connectionError.message,
+            details: connectionError.details,
+            hint: connectionError.hint
+        });
+        throw connectionError;
+    }
+
+    const { data: dateData, error: dateError } = await supabase
+        .from('dates')
+        .insert({
+            room_name: roomName,
+            date: today,
+            event: "Start Dating"
+        })
+        .select()
+        .single();
+
+    if (dateError) {
+        console.error('createRoom() date error:', {
+            code: dateError.code,
+            message: dateError.message,
+            details: dateError.details,
+            hint: dateError.hint
+        });
+
+        await supabase
+            .from('connections')
+            .delete()
+            .eq('room_name', roomName);
+
+        throw dateError;
+    }
+
+    return {
+        connection: connectionData,
+        startDate: dateData
+    };
 }
 
 export async function checkRoom(user: any, roomName: string, password: string) {
@@ -404,6 +436,26 @@ export async function getImportantDates(room: string) {
 }
 
 export async function deleteImportantDateItem(itemId: string) {
+    const { data: item, error: fetchError } = await supabase
+        .from('dates')
+        .select('event')
+        .eq('id', itemId)
+        .single();
+
+    if (fetchError) {
+        console.error('Error fetching item:', fetchError);
+        throw fetchError;
+    }
+
+    if (item?.event === 'Start Dating') {
+        Alert.alert(
+            'Cannot Delete',
+            'This event cannot be deleted as it marks the beginning of your journey.',
+            [{ text: 'OK' }]
+        );
+        return;
+    }
+
     const { error } = await supabase
         .from('dates')
         .delete()
@@ -413,6 +465,7 @@ export async function deleteImportantDateItem(itemId: string) {
         console.error('Error deleting travel item:', error);
         throw error;
     }
+
     return true;
 }
 

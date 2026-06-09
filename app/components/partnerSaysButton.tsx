@@ -40,10 +40,10 @@ export default function PartnerSaysButton({ iconSource, label, disabled = false,
         >
             <View className="rounded-full items-center justify-center">
                 { iconSource === 0?
-                    <View className="bg-amber-300 px-3 py-0.5 rounded-md">
+                    <View className="bg-amber-300 px-3 rounded-md">
                         <Text className="font-semibold text-sm">LATE</Text>
                     </View>:
-                    <Image source={iconSource} className="w-7 h-7" resizeMode="contain" tintColor={color}/>
+                    <Image source={iconSource} className="w-6 h-6" resizeMode="contain" tintColor={color}/>
                 }
             </View>
         </TouchableOpacity>
