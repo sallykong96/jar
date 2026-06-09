@@ -93,7 +93,7 @@ export default function RoomScreen() {
                 </View>
                 <View className="flex-row justify-center items-center mb-8">
                     <Icon iconSource={require('@/assets/icons/calendar.png')} label="schedule" title='Schedule'/>
-                    <Icon iconSource={require('@/assets/icons/save.png')} label="memories" title='Memories'/>
+                    <Icon iconSource={require('@/assets/icons/save.png')} label="moments" title='Moments'/>
                     <Icon iconSource={require('@/assets/icons/food.png')} label="food-baby" title='Food Baby'/>
                 </View>
 

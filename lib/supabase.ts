@@ -485,3 +485,16 @@ export async function addImportantDate(room: string, date: string, event: string
     }
     return data;
 }
+
+export async function getMoments(room: string) {
+    const { data, error } = await supabase
+        .from('moments')
+        .select('*')
+        .eq('room_name', room)
+        .order('date', { ascending: false });
+    if (error) {
+        console.error('addImportantDate() error:', error);
+        throw error;
+    }
+    return data;
+}
