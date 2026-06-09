@@ -380,25 +380,25 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                 onRequestClose={onClose}
             >
                 <View className="flex-1 justify-center items-center bg-black/50">
-                    <View className="bg-white rounded-lg p-6 w-11/12 max-w-md">
-                        <Text className="text-2xl font-bold mb-4 text-center">Add Destination</Text>
+                    <View className="bg-navy rounded-lg p-6 w-11/12 max-w-md">
+                        <Text className="text-2xl font-bold mb-4 text-center text-white">Add Destination</Text>
 
                         {/* Trip Type */}
                         <View className="mb-3">
                             <View className="flex-row gap-3">
                                 <TouchableOpacity
-                                    className={`flex-1 py-2 rounded-lg ${group === 'go' ? 'bg-navy' : 'bg-gray-300'}`}
+                                    className={`flex-1 py-2 rounded-lg ${group === 'go' ? 'bg-orange' : 'bg-white/10'}`}
                                     onPress={() => setGroup('go')}
                                 >
-                                    <Text className={`text-center ${group === 'go' ? 'text-white' : 'text-black'}`}>
+                                    <Text className="text-center text-white">
                                         Go To
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    className={`flex-1 py-2 rounded-lg ${group === 'been' ? 'bg-navy' : 'bg-gray-300'}`}
+                                    className={`flex-1 py-2 rounded-lg ${group === 'been' ? 'bg-orange' : 'bg-white/10'}`}
                                     onPress={() => setGroup('been')}
                                 >
-                                    <Text className={`text-center ${group === 'been' ? 'text-white' : 'text-black'}`}>
+                                    <Text className="text-center text-white">
                                         Been To
                                     </Text>
                                 </TouchableOpacity>
@@ -408,7 +408,7 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                         {/* Destination */}
                         <View className="flex-row items-center mb-3">
                             <TextInput
-                                className="flex-1 border border-gray-300 rounded-lg p-3"
+                                className="flex-1 bg-white/10 rounded-lg p-3"
                                 placeholder="Destination"
                                 placeholderTextColor="#999"
                                 value={destination}
@@ -420,7 +420,7 @@ export function AddDestinationModal({ visible, onClose, onSave, roomName }: AddD
                         <View className="mb-4">
                             <TouchableOpacity
                                 onPress={() => setShowDatePicker(true)}
-                                className="border border-gray-300 rounded-lg p-3"
+                                className="bg-white/10 rounded-lg p-3"
                             >
                                 <Text className={dateStart ? "text-black" : "text-gray-400"}>
                                     {dateStart ? `${formatDisplayDate(dateStart)} - ${dateEnd ? formatDisplayDate(dateEnd) : '...'}` : "Select Date Range"}

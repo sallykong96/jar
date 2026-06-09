@@ -5,20 +5,16 @@ import {checkDates, deleteUserCurrentRoom} from '@/lib/supabase';
 import { useUser } from '@clerk/clerk-expo';
 import Icon from '../../components/Icon';
 
-interface Dates {
-    met_date: string;
-    start_dating: string;
-}
 
 export default function RoomScreen() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
-    const [dates, setDates] = useState<Dates | null>(null);
-    const [daysSinceMet, setDaysSinceMet] = useState(0)
+    const [date, setDate] = useState<{ date: any } | null>(null);
     const [daysSinceStarted, setDaysSinceStarted] = useState(0)
     const [loading, setLoading] = useState(true);
 
     const { user } = useUser();
     const userId = user?.id;
+
     const handleLeaveRoom = async () => {
         if (!userId) {
             Alert.alert('Error', 'User not found');
@@ -27,8 +23,6 @@ export default function RoomScreen() {
 
         try {
             await deleteUserCurrentRoom(userId);
-
-            // Navigate back to connect screen
             router.replace('/connect');
         } catch (error) {
             console.error('Error leaving room:', error);
@@ -43,16 +37,16 @@ export default function RoomScreen() {
     }, [roomName]);
 
     useEffect(() => {
-        if (dates) {
+        if (date) {
             calculateDays();
         }
-    }, [dates]);
+    }, [date]);
 
     const fetchDates = async () => {
         try {
             setLoading(true);
-            const Dates = await checkDates(roomName)
-            setDates(Dates);
+            const result = await checkDates(roomName);
+            setDate(result);
         } catch (err: any) {
             console.error('Error fetching dates:', err);
             Alert.alert('Error', 'Failed to load room data');
@@ -61,42 +55,35 @@ export default function RoomScreen() {
         }
     }
 
-    const calculateDaysFromToday = (dateString: string): number => {
+    const calculateDaysFromToday = (dateString: any): number => {
         const targetDate = new Date(dateString);
         const today = new Date();
         targetDate.setHours(0, 0, 0, 0);
         today.setHours(0, 0, 0, 0)
         const diffTime = today.getTime() - targetDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
+        return Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }
 
     const calculateDays = () => {
-        if (dates?.met_date) {
-            const days = calculateDaysFromToday(dates.met_date);
-            setDaysSinceMet(days);
-        }
-
-        if (dates?.start_dating) {
-            const days = calculateDaysFromToday(dates.start_dating);
+        if (date && date.date) {  // ✅ Check for date.date property
+            const days = calculateDaysFromToday(date.date); // ✅ Pass date.date, not the whole object
             setDaysSinceStarted(days);
         }
     };
 
-            if (loading) {
-                return (
-                    <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
-                        <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator size="large" color="#ffffff" />
-                            <Text className="text-white mt-4">Loading room...</Text>
-                        </View>
-                    </ImageBackground>
-                );
-            }
+    if (loading) {
+        return (
+            <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
+                <View className="flex-1 justify-center items-center">
+                    <ActivityIndicator size="large" color="#ffffff" />
+                    <Text className="text-white mt-4">Loading room...</Text>
+                </View>
+            </ImageBackground>
+        );
+    }
 
     return (
         <ImageBackground source={require('@/assets/images/home.png')} className="flex-1 w-full h-full" resizeMode="cover">
-
             <View className="flex-1 mt-40">
                 {/* Icons Section */}
                 <View className="flex-row justify-center items-center mb-8">
@@ -111,16 +98,14 @@ export default function RoomScreen() {
                 </View>
 
                 {/* Date Section - Middle */}
-                <View className="mb-8">
+                <View className="mb-8 mt-15">
                     <View className="flex-row items-baseline pl-10">
-                        <Text className="text-5xl text-white font-artistic opacity-70">Met </Text>
-                        <Text className="text-8xl text-white font-artistic">{daysSinceMet}</Text>
-                        <Text className="text-5xl text-white font-artistic opacity-70"> days ago</Text>
+                        <Text className="text-5xl text-white font-artistic opacity-70">You have been in love </Text>
                     </View>
-                    <View className="flex-row items-baseline pl-30 -mt-6">
-                        <Text className="text-5xl text-white font-artistic opacity-70">Dated for </Text>
+                    <View className="flex-row items-baseline pl-35">
+                        <Text className="text-5xl text-white font-artistic opacity-70">for </Text>
                         <Text className="text-8xl text-white font-artistic">{daysSinceStarted}</Text>
-                        <Text className="text-5xl text-white font-artistic "> days</Text>
+                        <Text className="text-5xl text-white font-artistic opacity-70"> days</Text>
                     </View>
                 </View>
 
@@ -128,8 +113,7 @@ export default function RoomScreen() {
                 <TouchableOpacity className="rec-button mx-5 absolute bottom-20 left-5" onPress={handleLeaveRoom}>
                     <Text className="text-white text-center text-[16px]">Leave Room</Text>
                 </TouchableOpacity>
-
             </View>
         </ImageBackground>
     );
-        };
+}

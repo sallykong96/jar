@@ -98,8 +98,9 @@ export async function checkRoom(user: any, roomName: string, password: string) {
 export async function checkDates(roomName: string) {
         const { data, error } = await supabase
             .from('dates')
-            .select('met_date, start_dating')
+            .select('date')
             .eq('room_name', roomName)
+            .eq('event', 'Start Dating')
             .maybeSingle();
 
         if (error) {
@@ -203,14 +204,6 @@ export async function getReviewStatus(roomName: string) {
             date: formatDateToYYYYMMDD(item.date)
         })) || [];
 }
-
-// function formatDateToDDMMYYYY(date: string | Date): string {
-//     const d = new Date(date);
-//     const day = String(d.getDate()).padStart(2, '0');
-//     const month = String(d.getMonth() + 1).padStart(2, '0');
-//     const year = d.getFullYear();
-//     return `${day}-${month}-${year}`;
-// }
 
 function formatDateToYYYYMMDD(date: string | Date): string {
     const d = new Date(date);
@@ -374,6 +367,67 @@ export async function addDestination(props: AddDestinationProps) {
 
     if (error) {
         console.error('addDestination() error:', error);
+        throw error;
+    }
+    return data;
+}
+
+export async function getImportantDates(room: string) {
+    const { data, error } = await supabase
+        .from('dates')
+        .select('id, date, event')
+        .eq('room_name', room)
+        .order('date', { ascending: true });
+
+    if (error) {
+        console.error('getImportantDates error:', error);
+        throw error;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return data?.map(item => {
+        const formattedDate = formatDateToYYYYMMDD(item.date);
+        const targetDate = new Date(item.date);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - targetDate.getTime();
+        const daysFromToday = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        return {
+            ...item,
+            date: formattedDate,
+            count: daysFromToday
+        };
+    }) || [];
+}
+
+export async function deleteImportantDateItem(itemId: string) {
+    const { error } = await supabase
+        .from('dates')
+        .delete()
+        .eq('id', itemId);
+
+    if (error) {
+        console.error('Error deleting travel item:', error);
+        throw error;
+    }
+    return true;
+}
+
+export async function addImportantDate(room: string, date: string, event: string) {
+    const { data, error } = await supabase
+        .from('dates')
+        .insert([{
+            room_name: room,
+            event: event,
+            date: date,
+        }])
+        .select();
+
+    if (error) {
+        console.error('addImportantDate() error:', error);
         throw error;
     }
     return data;
