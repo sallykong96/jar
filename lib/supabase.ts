@@ -94,9 +94,31 @@ export async function createRoom(user: any, roomName: string, password: string) 
         throw dateError;
     }
 
+    const { data: reviewData, error: reviewError } = await supabase
+        .from('review')
+        .insert({
+            room_name: roomName,
+            date: today,
+            creator_status: 'pending',
+            joiner_status: 'pending'
+        })
+        .select()
+        .single();
+
+    if (reviewError) {
+        console.error('createRoom() review error:', {
+            code: reviewError.code,
+            message: reviewError.message,
+            details: reviewError.details,
+            hint: reviewError.hint
+        });
+        throw reviewError;
+    }
+
     return {
         connection: connectionData,
-        startDate: dateData
+        startDate: dateData,
+        review: reviewData,
     };
 }
 
@@ -409,7 +431,7 @@ export async function getImportantDates(room: string) {
         .from('dates')
         .select('id, date, event')
         .eq('room_name', room)
-        .order('date', { ascending: true });
+        .order('date', { ascending: false });
 
     if (error) {
         console.error('getImportantDates error:', error);
@@ -501,7 +523,7 @@ export async function getMoments(room: string) {
 
 export const updateImportantDate = async (id: string, event: string, date: string) => {
     const { data, error } = await supabase
-        .from('important_dates') // Replace with your actual table name
+        .from('dates') // Replace with your actual table name
         .update({ event, date })
         .eq('id', id)
         .select();

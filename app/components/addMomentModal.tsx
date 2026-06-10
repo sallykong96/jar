@@ -64,6 +64,7 @@ export default function AddMomentModal({ visible, onClose, onSave }: AddMomentMo
             // Reset form
             setTitle('');
             setDescription('');
+            setLocation('')
             setImageUrl('');
             onClose();
         } catch (err: any) {
@@ -151,6 +152,11 @@ export default function AddMomentModal({ visible, onClose, onSave }: AddMomentMo
                                 placeholder="e.g., Paris, France"
                                 placeholderTextColor="#ffffff60"
                                 maxLength={100}
+                                value={location}
+                                onChangeText={(text) => {
+                                    setLocation(text);
+                                    setError('');
+                                }}
                             />
                         </View>
 

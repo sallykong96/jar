@@ -76,11 +76,6 @@ export default function Roster() {
     // Add or update roster - FIXED: Accept both imageUrl and monthDate
     const handleAddRoster = async (imageUrl: string, monthDate: string) => {
         try {
-            console.log('=== Starting handleAddRoster ===');
-            console.log('Room name:', roomName);
-            console.log('Month date:', monthDate);
-            console.log('Image URL length:', imageUrl.length);
-            console.log('Is base64?', imageUrl.substring(0, 30));
 
             // Check if roomName exists
             if (!roomName) {
@@ -201,7 +196,7 @@ export default function Roster() {
                                         <Image
                                             source={{ uri: item.roster.image_url }}
                                             className="w-12 h-12 rounded-lg"
-                                            resizeMode="cover"
+                                            resizeMode="contain"
                                         />
                                     ) : (
                                         <View className="w-12 h-12 bg-white/20 rounded-lg justify-center items-center">

@@ -142,7 +142,7 @@ export default function QuestionsScreen() {
                 </Text>
                 <View className="p-6 pt-20">
                     {/* Question Card */}
-                    <View className="bg-white/90 rounded-2xl p-6 mb-2 shadow-lg">
+                    <View className="bg-white/90 rounded-2xl p-6 mb-4 shadow-lg">
                         <Text className="text-[#800000] text-[16px] font-semibold mb-2 text-center">
                             💭 Question of today
                         </Text>
@@ -152,7 +152,7 @@ export default function QuestionsScreen() {
                         </Text>
                         <View className="h-px bg-gray-200 mb-2" />
 
-                        <Text className="text-gray-500 text-center text-[16px]">
+                        <Text className="text-gray-500 text-center">
                             Answer honestly and listen with an open heart
                         </Text>
                     </View>
