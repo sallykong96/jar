@@ -131,7 +131,7 @@ export default function PartnerSays() {
                         ))
                     ) : (
                         <View className="py-8">
-                            <Text className="text-white text-center">No data available for {roomName}</Text>
+                            <Text className="text-white text-center">No data available</Text>
                         </View>
                     )}
                 </View>

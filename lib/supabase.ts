@@ -512,3 +512,61 @@ export const updateImportantDate = async (id: string, event: string, date: strin
     }
     return data;
 };
+
+export interface RosterProps {
+    id: string;
+    room_name: string;
+    month_date: string;
+    image_url: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export const getRosters = async (roomName: string) => {
+    const { data, error } = await supabase
+        .from('roster')
+        .select('*')
+        .eq('room_name', roomName)
+        .order('month_date', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching rosters:', error);
+        throw error;
+    }
+    return data;
+};
+
+// Add or update photo for a month
+export const upsertRoster = async (roomName: string, monthDate: string, imageUrl: string) => {
+    const { data, error } = await supabase
+        .from('roster')
+        .upsert({
+            room_name: roomName,
+            month_date: monthDate,
+            image_url: imageUrl,
+            updated_at: new Date().toISOString()
+        }, {
+            onConflict: 'room_name,month_date'
+        })
+        .select();
+
+    if (error) {
+        console.error('Error upsertRoster:', error);
+        throw error;
+    }
+    return data;
+};
+
+// Delete photo for a month
+export const deleteRoster = async (roomName: string, monthDate: string) => {
+    const { error } = await supabase
+        .from('roster')
+        .delete()
+        .eq('room_name', roomName)
+        .eq('month_date', monthDate);
+
+    if (error) {
+        console.error('Error deleteRoster:', error);
+        throw error;
+    }
+};
