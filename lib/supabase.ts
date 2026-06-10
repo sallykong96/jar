@@ -498,3 +498,17 @@ export async function getMoments(room: string) {
     }
     return data;
 }
+
+export const updateImportantDate = async (id: string, event: string, date: string) => {
+    const { data, error } = await supabase
+        .from('important_dates') // Replace with your actual table name
+        .update({ event, date })
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        console.error('Error updating important date:', error);
+        throw error;
+    }
+    return data;
+};

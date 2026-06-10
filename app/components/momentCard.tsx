@@ -104,11 +104,11 @@ export default function MomentCard({
                 onRequestClose={() => setDeleteModalVisible(false)}
             >
                 <View className="flex-1 justify-center items-center bg-black/50">
-                    <View className="bg-white rounded-2xl p-6 w-[80%]">
-                        <Text className="text-black text-xl font-bold text-center mb-3">
+                    <View className="bg-[#091B30] rounded-2xl p-6 w-[80%]">
+                        <Text className="text-white text-xl font-bold text-center mb-3">
                             Delete Moment
                         </Text>
-                        <Text className="text-black/70 text-center mb-6">
+                        <Text className="text-white/70 text-center mb-6">
                             Are you sure you want to delete "{title}"? This action cannot be undone.
                         </Text>
                         <View className="flex-row gap-3">
@@ -121,7 +121,7 @@ export default function MomentCard({
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                className="flex-1 bg-red-500 rounded-lg py-3"
+                                className="flex-1 bg-red rounded-lg py-3"
                                 onPress={() => {
                                     onDelete(id);
                                     setDeleteModalVisible(false);

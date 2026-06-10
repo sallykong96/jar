@@ -1,12 +1,13 @@
 import {View, Text, ImageBackground, TouchableOpacity, Alert} from 'react-native';
 import { ReturnButton } from "@/app/components/returnButton";
 import {useLocalSearchParams} from "expo-router";
-import {getImportantDates, deleteImportantDateItem, addImportantDate} from "@/lib/supabase";
+import {getImportantDates, deleteImportantDateItem, addImportantDate, updateImportantDate} from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import DateFrame from "@/app/components/dateFrame";
 import SquareButton from "@/app/components/squareButton";
 import SwipeableImportantDates from "@/app/components/swipeableImportantDates";
 import AddImportantDateModal from "@/app/components/addImportantDateModal";
+import EditImportantDateModal from "@/app/components/editImportantDateModal";
 
 export default function TheDates() {
     const { roomName } = useLocalSearchParams<{ roomName: string }>();
@@ -14,6 +15,8 @@ export default function TheDates() {
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<any>(null);
 
     const handleAddDate = async (event: string, date: string) => {
         try {
@@ -23,6 +26,25 @@ export default function TheDates() {
         } catch (error) {
             console.error('Error adding important date:', error);
         }
+    };
+
+    const handleEditDate = async (event: string, date: string) => {
+        if (!selectedItem) return;
+        try {
+            await updateImportantDate(selectedItem.id, event, date);
+            await fetchData();
+            setEditModalVisible(false);
+            setSelectedItem(null);
+            Alert.alert("Success", "Date updated successfully!");
+        } catch (error) {
+            console.error('Error updating important date:', error);
+            Alert.alert("Error", "Failed to update date");
+        }
+    };
+
+    const handleEditPress = (item: any) => {
+        setSelectedItem(item);
+        setEditModalVisible(true);
     };
 
     const fetchData = async () => {
@@ -45,7 +67,6 @@ export default function TheDates() {
     }, [roomName]);
 
     const handleDelete = async (itemId: string) => {
-        console.log('Item ID received:', itemId);
         Alert.alert(
             "Delete Item",
             "Are you sure you want to delete this item?",
@@ -97,7 +118,6 @@ export default function TheDates() {
                     <View className="bg-white/20 rounded-lg overflow-hidden">
                         <View className="flex-row bg-red">
                             <Text className="flex-4 py-2 text-center text-white text-[16px]">Event</Text>
-                            {/* flex-2 makes event take 2x more space */}
                             <Text className="flex-2 py-2 text-center text-white text-[16px]">Date</Text>
                             <Text className="flex-2 py-2 text-center text-white text-[16px]">Count</Text>
                         </View>
@@ -110,7 +130,8 @@ export default function TheDates() {
                                     date={item.date}
                                     count={item.count}
                                     onDelete={() => handleDelete(item.id)}
-                                    color="#091B30"
+                                    onEdit={() => handleEditPress(item)}
+                                    color="bg-white"
                                 />
                             ))
                         ) : (
@@ -121,19 +142,34 @@ export default function TheDates() {
                             </View>
                         )}
                     </View>
-
                 </View>
 
                 <View className="flex-row justify-end mb-4 mt-2">
                     <SquareButton iconSource={require('@/assets/icons/plus.png')} onPress={() => setModalVisible(true)} />
                 </View>
             </View>
+
             <AddImportantDateModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 onSave={handleAddDate}
                 roomName={roomName || ''}
             />
+
+            {selectedItem && (
+                <EditImportantDateModal
+                    visible={editModalVisible}
+                    onClose={() => {
+                        setEditModalVisible(false);
+                        setSelectedItem(null);
+                    }}
+                    onSave={handleEditDate}
+                    initialEvent={selectedItem.event}
+                    initialDate={selectedItem.date}
+                    itemId={selectedItem.id}
+                />
+            )}
+
             <ReturnButton />
         </ImageBackground>
     );
